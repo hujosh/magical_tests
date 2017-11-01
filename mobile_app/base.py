@@ -91,7 +91,7 @@ class Section(object):
         elif direction == 'right':
             directions = (0, 0, 300, 0)
             pass
-        self.driver.swipe(*directions, duration=800)
+        self.driver.swipe(*directions, duration=0)
      
     def remove_keyboard(self):
         try:
@@ -119,12 +119,14 @@ class Section(object):
 
     def scroll(self, elements):
         el1 = elements[0]
-        el2 = elements[-2]
+        el2 = elements[-1]
         x_start = el1.location['x']
         x_end = el2.location['x']
-        y_start = el1.location['y'] +5
-        y_end = el2.location['y'] + 5
-        self.driver.swipe(x_end, y_end, x_start, y_start)
+        y_start = el1.location['y']
+        y_end = el2.location['y']
+        self.driver.swipe(x_start + 300, y_start, x_start, y_start)
+
+        #self.driver.scroll(el1, el2)
 
     @property
     def toastText(self):

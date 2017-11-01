@@ -279,7 +279,7 @@ class HorizontalFriendsListSection(Section):
             if name == friend.firstName:
                 self.friend = friend_image
                 return True
-        #self.flick("right")
+       #self.flick("right")
         self.scroll(friend_images)
         nscrolls -= 1
         return self.friendInList(friend,nscrolls)

@@ -1,8 +1,7 @@
 import os
+from multiprocessing.dummy import Pool
 from random import choice
 from string import ascii_uppercase
-from multiprocessing.dummy import Pool
-
 
 import pytest
 from appium import webdriver
@@ -791,3 +790,17 @@ class TestProfileEdit:
 
     def test_change_privacy(self):
         pass'''
+
+
+class Test:
+    def test(self):
+        phone = webdriver.Remote(host, desired_caps)
+        user = User()
+        user.http.createAccount()
+        login_section = LoginSection(phone)
+        login_section.loginSuccessfully(user)
+        friends_list = HorizontalFriendsListSection(phone)
+        friend = User()
+        friend.setFirstName("Zero")
+        friend.setLastName("Test")
+        assert friends_list.friendInList(friend)

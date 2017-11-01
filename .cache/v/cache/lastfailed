@@ -1,4 +1,5 @@
 {
+  "tests/mobile_test.py::Test::()::test": true,
   "tests/mobile_test.py::TestFriendEdit::()::test_change_email_to_blank": true,
   "tests/mobile_test.py::TestFriendEdit::()::test_change_email_to_random_valid_email": true,
   "tests/mobile_test.py::TestFriendEdit::()::test_change_email_to_same_as_loggedin_users": true,
