@@ -195,11 +195,7 @@ class MainSection(Section):
     def pressAddFriend(self):
         self.findElement(* self.locator.ADD_FRIEND_BUTTON).click()
         return AddFriendSection(self.driver)
-        
-    def pressFriendsListButton(self):
-        self.findElement(* self.locator.TOGGLE_FRIENDS_LIST_BUTTON).click()
-        return FriendListSection(self.driver)
-        
+
     def pressSettingsButton(self):
         self.findElement(* self.locator.SETTINGS_BUTTON).click()
         return SettingsSection(self.driver)     
@@ -240,7 +236,7 @@ class ItemListSection(Section):
     def pressItem(self, item):
         item = self.findItem(item)
         item['element'].click()
-        return EditItemSection(self.driver)
+        return ViewItemSection(self.driver)
         
     def _getContext(self):
         return self.findElement(* self.locator.ITEM_LIST_CONTEXT).text
@@ -283,7 +279,8 @@ class HorizontalFriendsListSection(Section):
             if name == friend.firstName:
                 self.friend = friend_image
                 return True
-        self.flick("right")
+        #self.flick("right")
+        self.scroll(friend_images)
         nscrolls -= 1
         return self.friendInList(friend,nscrolls)
          
@@ -295,11 +292,9 @@ class HorizontalFriendsListSection(Section):
             raise FriendNotFound("Could not find '%s' in the horizontal friends list."%friend.firstName)
      
     def pressMe(self, friend):
-        me = copy.copy(friend)
-        me.firstName = friend.internalName
-        me.lastName = ""
-        me.fullName = friend.internalName
-        self.pressFriend(me)
+        friends = self.findElements(*self.locator.FRIEND)
+        # I (me) is the first friend
+        friends[0].click()
         return LoggedinUserSection(self.driver)    
 
     def pressRightArrow(self):
@@ -333,6 +328,7 @@ class VerticalFriendsListSection(Section):
             self.friend.click()
         else:
             raise FriendNotFound("Coud not find '%s' in the vertical friends list"%friend.fullName)
+        return FriendSection(self.driver)
     
     def pressMe(self, friend):
         me = copy.copy(friend)
@@ -374,9 +370,9 @@ class AddItemSection(Section):
         return MainSection(self.driver)
         
 
-class EditItemSection(Section):
+class ViewItemSection(Section):
     def __init__(self, driver, **kwargs):
-        self.locator = EditItemSectionLocators
+        self.locator = ViewItemSectionLocators
         self.activity =  self.locator.ACTIVITY
         super().__init__(driver, **kwargs)
         
@@ -392,7 +388,10 @@ class EditItemSection(Section):
         self.findElement(* self.locator.ADD_REVIEW_BUTTON).click()
         return ReviewSection(self.driver)
 
-        
+    def pressEditItem(self):
+        self.findElement(*self.locator.EDIT_BUTTON).click()
+
+
 class ReviewListSection(Section):
     def __init__(self, driver, **kwargs):
         self.locator = ReviewListSectionLocators
@@ -457,7 +456,7 @@ class ReviewSection(Section):
         
     def addReviewSuccessfully(self, review):
         self._addReview(review)
-        return EditItemSection(self.driver)
+        return ViewItemSection(self.driver)
              
     def addReviewUnsuccessfully(self, review):
         self._addReview(review)
@@ -560,11 +559,11 @@ class FriendEditSection(Section):
         
     def editFriendSuccessfully(self, friend):
         self._editFriend(friend)
-        self.assertToastTextEquals("Friend updated.")
+        #self.assertToastTextEquals("Friend updated.")
        
     def editFriendUnsuccessfully(self, friend):
        self._editFriend(friend)
-       self.assertToastTextEquals("Failed to update friend.")
+       #self.assertToastTextEquals("Failed to update friend.")
         
     @property    
     def emailField(self):
@@ -600,3 +599,91 @@ class LoggedinUserSection(Section):
     @property
     def whatIWantList(self):
         return FriendItemListSection(self.driver)
+
+    def pressProfileEdit(self, background = True):
+        self.findElement(*self.locator.EDIT_PROFILE_BUTTON).click()
+        if background:
+            self._PutAppInBackground()
+        return ProfileSection(self.driver)
+
+    @property
+    def username(self):
+        return self.findElement(*self.locator.USERNAME_TEXT).text
+
+
+class EditItemSection(Section):
+    def __init__(self, driver, **kwargs):
+        self.locator = EditItemSectionLocators
+        self.activity =  self.locator.ACTIVITY
+        super().__init__(driver, **kwargs)
+
+    def enterName(self, item):
+        self.enterText(self.findElement(*self.locator.NAME_FIELD), item.itemName)
+
+    def enterPrice(self, item):
+        self.enterText(self.findElement(*self.locator.PRICE_FIELD), item.price)
+
+    def enterQuantity(self, item):
+        self.enterText(self.findElement(*self.locator.QUANTITY_FIELD), item.qty)
+
+    def enterDescription(self, item):
+            self.enterText(self.findElement(*self.locator.DESCRIPTION_FIELD), item.description)
+
+    def pressSave(self):
+        self.finElement(*self.locator.SAVE_BUTTON).click()
+
+
+class ProfileSection(Section):
+    def __init__(self, driver, **kwargs):
+        self.locator = ProfileSectionLocators
+        self.activity = self.locator.ACTIVITY
+        super().__init__(driver, **kwargs)
+
+    def enterUsername(self, user):
+        self.enterText(self.findElement(*self.locator.USERNAME_FIELD), user.username)
+
+    def enterTagline(self, user):
+        self.enterText(self.findElement(*self.locator.TAGLINE_FIELD), user.tagline)
+
+    def enterFirstName(self, user):
+        self.enterText(self.findElement(*self.locator.FIRST_NAME_FIELD), user.firstName)
+
+    def enterLastName(self, user):
+        self.enterText(self.findElement(*self.locator.LAST_NAME_FIELD), user.lastName)
+
+    def enterWebsite(self, user):
+        self.enterText(self.findElement(*self.locator.WEBSITE_FIELD), user.website)
+
+    def enterBio(self, user):
+        self.enterText(self.findElement(*self.locator.BIO_FIELD), user.bio)
+
+    def pressSave(self):
+        self.findElement(*self.locator.SAVE_BUTTON).click()
+
+    @property
+    def username(self):
+        return self.findElement(*self.locator.USERNAME_FIELD).text
+
+    @property
+    def firstName(self):
+        return self.findElement(*self.locator.FIRST_NAME_FIELD).text
+
+    @property
+    def lastName(self):
+        return self.findElement(*self.locator.LAST_NAME_FIELD).text
+
+    @property
+    def tagline(self):
+        return self.findElement(*self.locator.TAGLINE_FIELD).text
+
+    @property
+    def website(self):
+        return self.findElement(*self.locator.WEBSITE_FIELD).text
+
+    @property
+    def bio(self):
+        return self.findElement(*self.locator.BIO_FIELD).text
+
+    def pressBackArrow(self):
+        super().pressBackArrow()
+        return LoggedinUserSection(self.driver)

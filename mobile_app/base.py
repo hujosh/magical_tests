@@ -77,7 +77,7 @@ class Section(object):
         '''Enter text into the element, and then get rid of the software keyboard.'''
         element.clear()
         if text != "":
-            element.set_value(text)
+            element.send_keys(text)
             self.remove_keyboard()
            
     def flick(self, direction):
@@ -117,7 +117,16 @@ class Section(object):
         if toast_text != expected_toast_text:
             raise AssertionError("The toast text should have been '%s' but was '%s'"%(expected_toast_text, toast_text))
 
-    @property        
+    def scroll(self, elements):
+        el1 = elements[0]
+        el2 = elements[-2]
+        x_start = el1.location['x']
+        x_end = el2.location['x']
+        y_start = el1.location['y'] +5
+        y_end = el2.location['y'] + 5
+        self.driver.swipe(x_end, y_end, x_start, y_start)
+
+    @property
     def toastText(self):
         return self.findElement(*self.locator.TOAST, 
             expectedCondition = EC.presence_of_element_located).text
@@ -129,3 +138,6 @@ class Section(object):
                 if element == locator:
                     return name
         raise AttributeError("The locator %s does not exist in locators.py"%(str(locator)))
+
+    def pressHamburger(self):
+        self.findElement(*self.locator.HAMBURGER_BUTTON).click()

@@ -12,8 +12,9 @@ class BaseSectionLocators:
     ITEM_LIST_CONTEXT  = (MobileBy.ID, 'toolbar_main_textview')
     BACK_ARROW_BUTTON  = (MobileBy.XPATH, '//android.widget.ImageButton[@index = "0"]')
     TOAST              = (MobileBy.CLASS_NAME, 'android.widget.Toast')
-    
-    
+    HAMBURGER_BUTTON = (MobileBy.XPATH, '//android.widget.ImageView[@index = "1"]')
+
+
 class AlertSectionLocators(BaseSectionLocators):
     ALERT_BOX             = (MobileBy.ID, 'parentPanel')
     OK_BUTTON             = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("OK")')
@@ -99,13 +100,14 @@ class AddItemSectionLocators(BaseSectionLocators):
     ADD_ITEM_BUTTON     = (MobileBy.ID, 'itemDetails_saveButton')
     
     
-class EditItemSectionLocators(BaseSectionLocators):
+class ViewItemSectionLocators(BaseSectionLocators):
     ACTIVITY  = "com.android.magical.Presentation.EditItemDetails.EditItemDetailsActivity"
     
     PRICE_TEXT = (MobileBy.ID, 'edit_item_details_price_edit_text')
     ADD_REVIEW_BUTTON = (MobileBy.ID, 'edit_item_details_add_review_button')
     REVIEW = (MobileBy.ID, 'review_layout_text_layout')
-    
+    DELETE_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Delete")')
+    EDIT_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Edit")')
     
 class ReviewListSectionLocators:
     ACTIVITY  = "com.android.magical.Presentation.EditItemDetails.EditItemDetailsActivity"
@@ -159,17 +161,41 @@ class FriendEditSectionLocators(BaseSectionLocators):
     LAST_NAME_FIELD = (MobileBy.ID, 'edit_friend_last_name_edit_text')
     EMAIL_ADDRESS_FIELD = (MobileBy.ID, 'edit_friend_email_edit_text')
     BIRTHDAY_FIELD = (MobileBy.ID, 'edit_friend_birthday_edit_text')
-    HAMBURGER_BUTTON = (MobileBy.XPATH, '//android.widget.ImageView[@index = "1"]')
     DELETE_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Delete")')
     SAVE_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("SAVE")')
     
     
 class LoggedinUserSectionLocators(BaseSectionLocators):
     ACTIVITY = "com.android.magical.Presentation.ViewFriend.ViewFriendActivity"
-    
-   
+
+    EDIT_PROFILE_BUTTON = (MobileBy.ID, 'menu_view_friend_edit')
+    USERNAME_TEXT = (MobileBy.ID, 'view_friend_toolbar_username_tagline')
+
+
 class FriendSectionLocators(BaseSectionLocators):
     ACTIVITY = "com.android.magical.Presentation.ViewFriend.ViewFriendActivity"
     
     EDIT_FRIEND_BUTTON = (MobileBy.ID, 'menu_view_friend_edit')
     FRIEND_NAME_TEXT = (MobileBy.ID, 'view_friend_toolbar_title_text')
+
+
+class EditItemSectionLocators(BaseSectionLocators):
+    ACTIVITY = ""
+
+    NAME_FIELD = (MobileBy.ID, 'edit_item_edit_item_name')
+    PRICE_FIELD = (MobileBy.ID, 'edit_item_edit_item_price')
+    QUANTITY_FIELD = (MobileBy.ID, 'edit_item_edit_item_qty')
+    DESCRIPTION_FIELD = (MobileBy.ID, 'edit_item_edit_item_qty')
+    SAVE_BUTTON = (MobileBy.ID, 'edit_item_edit_item_desce')
+
+
+class ProfileSectionLocators(BaseSectionLocators):
+    ACTIVITY = "com.android.magical.Presentation.EditProfile.EditProfileActivity"
+
+    USERNAME_FIELD = (MobileBy.ID,"edit_profile_username_edit_text")
+    TAGLINE_FIELD = (MobileBy.ID,"edit_profile_tagline_edit_text")
+    FIRST_NAME_FIELD = (MobileBy.ID,"edit_profile_first_name_edit_text")
+    LAST_NAME_FIELD = (MobileBy.ID,"edit_profile_last_name_edit_text")
+    WEBSITE_FIELD = (MobileBy.ID,"edit_profile_website_edit_text")
+    BIO_FIELD = (MobileBy.ID,"edit_profile_bio_edit_text")
+    SAVE_BUTTON = (MobileBy.ID,"menu_edit_profile_save")

@@ -1,4 +1,8 @@
 import os
+from random import choice
+from string import ascii_uppercase
+from multiprocessing.dummy import Pool
+
 
 import pytest
 from appium import webdriver
@@ -42,12 +46,18 @@ def assertFriendPresent(friend, phone):
     if not (verticalFriendsListSection.friendInList(friend)):
         raise AssertionError("'%s' should be in the vertical friends list, but it isn't." % friend.fullName)
 
+def goBackToMainSection(test, phone):
+    test.phone.start_activity(desired_caps['appPackage'], desired_caps['appActivity'])
+
 
 def getLoggedinUser(pre_defined_user=None):
     user = User(pre_defined_user)
     user.http.createAccount()
     user.http.login()
     return user
+
+def getRandomString(length):
+    return ''.join(choice(ascii_uppercase) for i in range(User.MAX_USERNAME+1))
 
 
 class TestLogin:
@@ -227,25 +237,22 @@ class TestAddItem:
     @classmethod
     def setup_class(cls):
         cls.phone = webdriver.Remote(host, desired_caps)
+        cls.user = User()
+        cls.user.http.createAccount()
+        loginSection = LoginSection(cls.phone)
+        cls.mainSection = loginSection.loginSuccessfully(cls.user)
 
     @classmethod
     def teardown_class(cls):
         cls.phone.quit()
 
-    def teardown_method(cls):
-        cls.phone.reset()
+    def teardown_method(self):
+        goBackToMainSection(TestAddItem, TestAddItem.phone)
 
-    def setup_method(cls):
-        try:
-            cls.user = User()
-            cls.user.http.createAccount()
-            loginSection = LoginSection(cls.phone)
-            cls.mainSection = loginSection.loginSuccessfully(cls.user)
-            cls.mainSection.pressPlus()
-            cls.addItemSection = cls.mainSection.pressAddItem()
-        except:
-            cls.teardown_method()
-            raise
+    def setup_method(self):
+        self.user = TestAddItem.user
+        TestAddItem.mainSection.pressPlus()
+        TestAddItem.addItemSection = TestAddItem.mainSection.pressAddItem()
 
     @pytest.mark.parametrize("item_type", [
         'itemNameHasOnlyNumbers',
@@ -283,9 +290,9 @@ class TestAddItem:
         cls.addItemSection.addItemSuccessfully(item)
         friendListSection = HorizontalFriendsListSection(cls.phone)
         mySection = friendListSection.pressMe(cls.user)
-        editItemSection = mySection.whatIWantList.pressItem(
+        viewItemSection = mySection.whatIWantList.pressItem(
             {'name': item.validatedItemName, 'by': cls.user.internalName})
-        assert editItemSection.price == item.validatedItemPrice
+        assert viewItemSection.price == item.validatedItemPrice
 
     @pytest.mark.parametrize("item_type", [
         "priceIsEmpty",
@@ -296,9 +303,9 @@ class TestAddItem:
         cls.addItemSection.addItemSuccessfully(item)
         friendListSection = HorizontalFriendsListSection(cls.phone)
         mySection = friendListSection.pressMe(cls.user)
-        editItemSection = mySection.whatIWantList.pressItem(
+        viewItemSection = mySection.whatIWantList.pressItem(
             {'name': item.validatedItemName, 'by': cls.user.internalName})
-        assert editItemSection.price == item.validatedItemPrice
+        assert viewItemSection.price == item.validatedItemPrice
 
     '''
     def test_add_item_with_anyoneCanKnow(self):
@@ -342,21 +349,20 @@ class TestReview:
     @classmethod
     def setup_class(cls):
         cls.phone = webdriver.Remote(host, desired_caps)
+        cls.user = User()
+        cls.user.http.createAccount()
+        cls.user.http.login()
+        cls.item = Item()
+        cls.user.http.addItem(cls.item)
+        loginSection = LoginSection(cls.phone)
+        cls.mainSection = loginSection.loginSuccessfully(cls.user)
 
     @classmethod
     def teardown_class(cls):
         cls.phone.quit()
 
-    def teardown_method(cls):
-        cls.phone.reset()
-
-    def setup_method(cls):
-        cls.user = User('extantUser')
-        cls.item = Item()
-        cls.user.http.login()
-        cls.user.http.addItem(cls.item)
-        cls.loginSection = LoginSection(cls.phone)
-        cls.loginSection.loginSuccessfully(cls.user)
+    def teardown_method(self):
+        goBackToMainSection(TestReview, TestReview.phone)
 
     @pytest.mark.parametrize("review_type, error_message", [
         ("emptyReviewText", "Comment is required."),
@@ -364,16 +370,16 @@ class TestReview:
     def test_add_invalidReview(cls, review_type, error_message):
         friendListSection = HorizontalFriendsListSection(cls.phone)
         mySection = friendListSection.pressMe(cls.user)
-        editItemSection = mySection.whatIWantList.pressItem({'name': cls.item.itemName, 'by': cls.user.internalName})
-        editItemSection.flick('down')
-        reviewSection = editItemSection.pressAddReviewButton()
+        viewItemSection = mySection.whatIWantList.pressItem({'name': cls.item.itemName, 'by': cls.user.internalName})
+        viewItemSection.flick('down')
+        reviewSection = viewItemSection.pressAddReviewButton()
         alert = reviewSection.addReviewUnsuccessfully(Review(review_type))
         assert alert.title == error_message
         alert.pressOK()
         assert reviewSection.sectionPresent()
 
     @pytest.mark.parametrize("review_type", [
-        "zeroStarReview"
+        "zeroStarReview",
         "oneStarReview",
         "twoStarReview",
         "threeStarReview",
@@ -383,19 +389,18 @@ class TestReview:
     def test_add_validReview(cls, review_type):
         friendListSection = HorizontalFriendsListSection(cls.phone)
         mySection = friendListSection.pressMe(cls.user)
-        editItemSection = mySection.whatIWantList.pressItem({'name': cls.item.itemName, 'by': cls.user.internalName})
-        editItemSection.flick('down')
-        reviewSection = editItemSection.pressAddReviewButton()
+        viewItemSection = mySection.whatIWantList.pressItem({'name': cls.item.itemName, 'by': cls.user.internalName})
+        viewItemSection.flick('down')
+        reviewSection = viewItemSection.pressAddReviewButton()
         review = Review(review_type)
         editeItemSection = reviewSection.addReviewSuccessfully(review)
-        assert editItemSection.reviewList.reviewInList(review)
+        assert viewItemSection.reviewList.reviewInList(review)
 
         # def test_edit_review(cls):
         #    pass
 
         # def test_delete_review(cls):
         #    pass
-
 
 class TestAddFriend:
     @classmethod
@@ -438,50 +443,60 @@ class TestAddFriend:
         # We should still be in the addFriendSection
         assert self.addFriendSection.sectionPresent()
         self.addFriendSection.pressBackArrow()
-        self.addFriendSection.pressBackArrow()
         assertFriendNotPresent(friend, TestAddFriend.phone)
 
     @pytest.mark.parametrize("friend_type", [
         "emptyLastName",
+        "emptyEmail",
         "emptyLastNameEmptyEmail",
         # A friend whose details are random...
-        'random'
+        'random',
+        'funnyCharInFirstName',
+        'funnyCharInLastName',
     ])
     def test_add_valid_non_magical_friend(self, friend_type):
         friend = User(friend_type)
         mainSection = self.addFriendSection.addFriendSuccessfully(friend)
-        self.addFriendSection.pressBackArrow()
         assertFriendPresent(friend, TestAddFriend.phone)
 
     def test_add_valid_magical_friend(self):
         friend = User()
         friend.http.createAccount()
         mainSection = self.addFriendSection.addFriendSuccessfully(friend)
-        self.addFriendSection.pressBackArrow()
         assertFriendPresent(friend, TestAddFriend.phone)
-
 
 class TestFriendEdit:
     @classmethod
+    def create_account(cls, user):
+        user.http.createAccount()
+        return user
+
+    @classmethod
     def setup_class(cls):
         cls.phone = webdriver.Remote(host, desired_caps)
+        cls.user = getLoggedinUser()
+        loginSection = LoginSection(TestFriendEdit.phone)
+        loginSection.loginSuccessfully(cls.user)
 
     @classmethod
     def teardown_class(cls):
         cls.phone.quit()
 
     def teardown_method(self):
-        TestFriendEdit.phone.reset()
+        goBackToMainSection(TestFriendEdit, TestFriendEdit.phone)
 
     def setup_method(self):
-        self.user = getLoggedinUser()
-        self.friend = User()
-        self.user.http.addFriend(self.friend)
-        loginSection = LoginSection(TestFriendEdit.phone)
-        loginSection.loginSuccessfully(self.user)
-        friendList = HorizontalFriendsListSection(TestFriendEdit.phone)
-        friendSection = friendList.pressFriend(self.friend)
-        self.friendProfile = friendSection.pressEditFriend()
+        try:
+            self.user = TestFriendEdit.user
+            self.friend = User()
+            self.user.http.addFriend(self.friend)
+            horFriendList = HorizontalFriendsListSection(TestFriendEdit.phone)
+            verFriendList = horFriendList.pressRightArrow()
+            friendSection = verFriendList.pressFriend(self.friend)
+            self.friendProfile = friendSection.pressEditFriend()
+        except:
+            self.teardown_method()
+            raise
 
     @pytest.mark.parametrize("invalid_name", [
         "",  # empty name
@@ -490,19 +505,21 @@ class TestFriendEdit:
     ])
     def test_invalid_first_name_change(self, invalid_name):
         old_name = self.friend.fullName
-        self.friend.setFirstName(invalid_name)
-        self.friendProfile.editFriendUnsuccessfully(self.friend)
+        self.friend.setFirstName(invalid_name, shouldTrim = False)
+        self.friendProfile.enterFirstName(self.friend)
+        self.friendProfile.pressSave()
         assert self.friendProfile.sectionPresent()
         friendSection = self.friendProfile.pressBackArrow()
         # assert that the name wasn't changed
         assert friendSection.friendName == old_name
 
     @pytest.mark.parametrize("valid_name", [
-        'NEW'  # empty name
+        'NEW'
     ])
     def test_valid_first_name_change(self, valid_name):
         self.friend.setFirstName(valid_name)
-        self.friendProfile.editFriendSuccessfully(self.friend)
+        self.friendProfile.enterFirstName(self.friend)
+        self.friendProfile.pressSave()
         assert self.friendProfile.sectionPresent()
         friendSection = self.friendProfile.pressBackArrow()
         assert friendSection.friendName == self.friend.fullName
@@ -510,11 +527,12 @@ class TestFriendEdit:
         assertFriendPresent(self.friend)
 
     @pytest.mark.parametrize("valid_name", [
-        'NEW'  # empty name
+        'NEW'
     ])
     def test_valid_last_name_change(self, valid_name):
         self.friend.setLastName(valid_name)
-        self.friendProfile.editFriendSuccessfully(self.friend)
+        self.friendProfile.enterLastName(self.friend)
+        self.friendProfile.pressSave()
         assert self.friendProfile.sectionPresent()
         friendSection = self.friendProfile.pressBackArrow()
         assert friendSection.friendName == self.friend.fullName
@@ -527,7 +545,8 @@ class TestFriendEdit:
     def test_invalid_last_name_change(self, invalid_name):
         old_name = self.friend.fullName
         self.friend.setLastName(invalid_name)
-        self.friendProfile.editFriendUnsuccessfully(self.friend)
+        self.friendProfile.enterLastName(self.friend)
+        self.friendProfile.pressSave()
         assert self.friendProfile.sectionPresent()
         friendSection = self.friendProfile.pressBackArrow()
         # assert that the name wasn't changed
@@ -536,19 +555,22 @@ class TestFriendEdit:
     def test_change_email_to_same_as_loggedin_users(self):
         old_email = self.friend.email
         self.friend.email = self.user.email
-        self.friendProfile.editFriendUnsuccessfully(self.friend)
+        self.friendProfile.enterEmailAddress(self.friend)
+        self.friendProfile.pressSave()
         assert self.friendProfile.sectionPresent()
 
     def test_change_email_to_blank(self):
         old_email = self.friend.email
         self.friend.email = ''
-        self.friendProfile.editFriendSuccessfully(self.friend)
+        self.friendProfile.enterEmailAddress(self.friend)
+        self.friendProfile.pressSave()
         assert self.friendProfile.sectionPresent()
 
     def test_change_email_to_random_valid_email(self):
         old_email = self.friend.email
         self.friend.email = 'a' + self.friend.email
-        self.friendProfile.editFriendSuccessfully(self.friend)
+        self.friendProfile.enterEmailAddress(self.friend)
+        self.friendProfile.pressSave()
         assert self.friendProfile.sectionPresent()
 
     def test_change_email_to_that_of_extant_friend(self):
@@ -557,7 +579,8 @@ class TestFriendEdit:
         self.user.http.addFriend(friend2)
         old_email = self.friend.email
         self.friend.email = friend2.email
-        self.friendProfile.editFriendUnsuccessfully(self.friend)
+        self.friendProfile.enterEmailAddress(self.friend)
+        self.friendProfile.pressSave()
         assert self.friendProfile.sectionPresent()
 
 
@@ -597,3 +620,174 @@ class TestDeleteFriend:
         friendSection = self.editFriendSection.pressBackArrow()
         mainSection = friendSection.pressBackArrow()
         assertFriendPresent(self.friend, TestDeleteFriend.phone)
+
+
+class TestEditItem():
+    @classmethod
+    def setup_class(cls):
+        cls.phone = webdriver.Remote(host, desired_caps)
+        cls.user = User()
+        cls.user.http.createAccount()
+        cls.user.http.login()
+        loginSection = LoginSection(cls.phone)
+        loginSection.loginSuccessfully(cls.user)
+
+    @classmethod
+    def teardown_class(cls):
+        cls.phone.quit()
+
+    def teardown_method(self):
+        goBackToMainSection(TestEditItem, TestEditItem.phone)
+
+    def setup_method(self):
+        self.user = TestEditItem.user
+        self.item = Item()
+        self.user.http.addItem(self.item)
+        horFriendList = HorizontalFriendsListSection(TestEditItem.phone)
+        mySection = horFriendList.pressMe(self.user)
+        itemSection = mySection.whatIWantList.pressItem({'name': self.item.validatedItemName, 'by': self.user.internalName})
+        self.editItemSection = itemSection.pressEditItem()
+
+    def test_valid_name_change(self):
+        old_name = self.item.itemName
+        self.item.itemName = "poo"
+        self.editItemSection.enterName(self.item)
+        self.editItemSection.pressSave()
+
+class TestProfile:
+    @classmethod
+    def setup_class(cls):
+        cls.phone = webdriver.Remote(host, desired_caps)
+
+    @classmethod
+    def teardown_class(cls):
+        cls.phone.quit()
+
+    def teardown_method(self):
+        goBackToMainSection(TestProfile, TestProfile.phone)
+
+    def setup_method(self):
+        self.user = User()
+        self.user.http.createAccount()
+        loginSection = LoginSection(TestProfile.phone)
+        loginSection.loginSuccessfully(self.user)
+        friendList = HorizontalFriendsListSection(TestProfile.phone)
+        mySection = friendList.pressMe(self.user)
+        self.myProfile = mySection.pressProfileEdit()
+
+    def testProfileDataCorrect(self):
+        '''Tests that the data in the profile upon logging in for the first time is correct'''
+        assert self.myProfile.username == self.user.username
+        assert self.myProfile.firstName == self.user.firstName
+        assert self.myProfile.lastName == self.user.lastName
+        # The remaining fields of the profile should be blank, because they have not yet been set.
+        assert self.myProfile.tagline == ""
+        assert self.myProfile.website == ""
+        assert self.myProfile.bio == ""
+
+
+class TestProfileEdit:
+    @classmethod
+    def create_account(cls, user):
+        user.http.createAccount()
+        return user
+
+    @classmethod
+    def setup_class(cls):
+        cls.users = [User() for i in range(15)]
+        cls.p = Pool(15)
+        cls.it = TestProfileEdit.p.imap(cls.create_account, cls.users)
+        cls.phone = webdriver.Remote(host, desired_caps)
+
+    @classmethod
+    def teardown_class(cls):
+        cls.phone.quit()
+
+    def teardown_method(self):
+        #goBackToMainSection(TestProfileEdit, TestProfileEdit.phone)
+        TestProfileEdit.phone.reset()
+
+    def setup_method(self):
+        self.user = TestProfileEdit.it.next()
+        loginSection = LoginSection(TestProfileEdit.phone)
+        loginSection.loginSuccessfully(self.user)
+        friendList = HorizontalFriendsListSection(TestProfileEdit.phone)
+        mySection = friendList.pressMe(self.user)
+        self.myProfile = mySection.pressProfileEdit()
+
+    @pytest.mark.parametrize("name", [
+        '' # you can't have an empty name
+    ])
+    def test_first_name_invalid(self, name):
+        old_name = self.myProfile.firstName
+        self.user.setFirstName(name)
+        self.myProfile.enterFirstName(self.user)
+        self.myProfile.pressSave()
+        mySection = self.myProfile.pressBackArrow()
+        myProfile = mySection.pressProfileEdit()
+        assert myProfile.firstName == old_name
+
+    @pytest.mark.parametrize("name", [
+        'Greg',
+        'Pökémön'
+    ])
+    def test_first_name_valid(self, name):
+        self.user.setFirstName(name)
+        self.myProfile.enterFirstName(self.user)
+        self.myProfile.pressSave()
+        mySection = self.myProfile.pressBackArrow()
+        myProfile = mySection.pressProfileEdit()
+        assert myProfile.firstName == self.user.firstName
+
+    @pytest.mark.parametrize("name", [
+        getRandomString(User.MAX_USERNAME+1),
+        '%' + getRandomString(User.MAX_USERNAME ), # invalid char %
+        '', #empty username
+        ' ' # space in username
+    ])
+    def test_username_invalid(self, name):
+        old_username = self.myProfile.username
+        self.user.username = name
+        self.myProfile.enterUsername(self.user)
+        self.myProfile.pressSave()
+        mySection = self.myProfile.pressBackArrow()
+        assert mySection.username == old_username
+        myProfile = mySection.pressProfileEdit()
+        assert myProfile.username == old_username
+
+    def test_username_already_exists(self):
+        other_user = User()
+        other_user.http.createAccount()
+        old_username = self.myProfile.username
+        self.user.username = other_user.username
+        self.myProfile.enterUsername(self.user)
+        self.myProfile.pressSave()
+        mySection = self.myProfile.pressBackArrow()
+        assert mySection.username == old_username
+        myProfile = mySection.pressProfileEdit()
+        assert myProfile.username == old_username
+
+    '''
+    def test_username_valid(self):
+        pass
+
+    def test_last_name_invalid(self):
+        pass
+
+    def test_last_name_valid(self):
+        pass
+
+    def test_website_invalid(self):
+        pass
+
+    def test_website_valid(self):
+        pass
+
+    def test_bio_valid(self):
+        pass
+
+    def test_bio_invalid(self):
+        pass
+
+    def test_change_privacy(self):
+        pass'''

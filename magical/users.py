@@ -12,10 +12,14 @@ class User:
     '''
     # order of attributes matters
     ATTRIBUTES = ['username', 'email', 'password', 'retypedPassword',
-                  'firstName', 'lastName', 'internalName']
+                  'firstName', 'lastName', 'internalName', "bio", "website", "tagline"]
     NAMES     =  ['Josh', 'David', 'Kyle', 'Emmanuel', 'Rohan', 'Russel', 'Goddard',
-                   'Olton', 'Spencer', 'Phillips', 'Amadio', 'Calydris']
+                   'Olton', 'Spencer', 'Phillips', 'Amadio', 'Calydris', "Smith", "Fong",
+                  "Judy", "Linda", "Jai", "Bin", "Lucy", "Olivia", "Matthew", "Leigh", "Nick",
+                  "Birnie", "James", "Erin", "Bernard", "Jeniffer", "Deb", "Jessica"]
     PASSWORD  = 'oryx*967'
+
+    MAX_USERNAME = 18
     
     # pre_defined_user is a name in the users array
     # attributes is a dictionary
@@ -29,7 +33,7 @@ class User:
                 setattr(self, attribute, attributes[attribute])
             except KeyError:
                 setattr(self, attribute, self._getValueFor(attribute))
-        self.fullName = '%s %s'%(self.firstName, self.lastName)
+        self.fullName = ('%s %s'%(self.firstName, self.lastName)).strip()
         # These attributes allows a user to interact with the website via http requests.
         self.http = HTTP(self)
         self.ahttp = AHTTP(self)
@@ -62,21 +66,39 @@ class User:
                   'firstName'       : self._getRandomFirstName,
                   'lastName'        : self._getRandomLastName,
                   'internalName'    : self._getInternalName,
+                  'bio'             :self._getBio,
+                  'website'         :self._getWebsite,
+                  'tagline'         :self._getTagline,
                  }
         return switch[value_for]()
         
     def _getRandomNumber(self):
         return int(random.random()*99999999)
         
-    def setFirstName(self, name):
+    def setFirstName(self, name, shouldTrim = True):
         self.firstName = name
-        self.fullName = '%s %s'%(self.firstName, self.lastName)
+        fullName = ('%s %s'%(self.firstName, self.lastName))
+        if shouldTrim:
+            fullName = fullName.strip()
+        self.fullName = fullName
         
-    def setLastName(self, name):
+    def setLastName(self, name,shouldTrim = True):
         self.lastName = name
-        self.fullName = '%s %s'%(self.firstName, self.lastName)
+        fullName = ('%s %s'%(self.firstName, self.lastName))
+        if shouldTrim:
+            fullName = fullName.strip()
+        self.fullName = fullName
 
-        
+    def _getWebsite(self):
+        return "dev.magic.al"
+
+    def _getBio(self):
+        return "I was created to test magical"
+
+    def _getTagline(self):
+        return "What's a tagline?"
+
+
 # pre-defined users
 # add more here if you need to...
 users = [
@@ -98,6 +120,8 @@ users = [
     {"name": "emptyRetypedPassword", "retypedPassword": ""},
     {"name": "emptyLastNameEmptyEmail", "lastName": "", "email":""},
     {"name": "random"},
+    {"name":"funnyCharInFirstName", "firstName" : "Pökémön"},
+    {"name": "funnyCharInLastName", "lastName": "Pökémön"}
 ]
 
 def get_user(name):
@@ -105,19 +129,5 @@ def get_user(name):
         if user['name'] == name:
             return user
     raise KeyError("\n User %s is not defined, enter a valid user.\n" %name)
-    
-    
-def test(user):
-        item = Item()
-        user.http.addItem(item)    
-    
-if __name__ == '__main__':
-    
-    
-    user1 = User('extantUser')
-    user2 = User('extantUser')
 
-    p = Pool(1)
-    start = time.time()
-    for request in p.imap_unordered(test, [user1, user2]):
-        print("{} (Time elapsed: {}s)".format(request, int(time.time() - start))) 
+    
