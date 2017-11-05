@@ -841,3 +841,51 @@ class TestProfileEdit:
 
     def test_change_privacy(self):
         pass'''
+
+
+class TestLikeItem:
+    @classmethod
+    def create_account(cls, user):
+        user.http.createAccount()
+        user.http.login()
+        item = Item()
+        user.http.addItem(item)
+        return user, item
+
+    @classmethod
+    def setup_class(cls):
+        cls.users = [User() for i in range(15)]
+        cls.p = Pool(15)
+        cls.it = TestLikeItem.p.imap(cls.create_account, cls.users)
+        cls.phone = webdriver.Remote(host, desired_caps)
+
+    @classmethod
+    def teardown_class(cls):
+        cls.phone.quit()
+
+    def teardown_method(self):
+        # goBackToMainSection(TestProfileEdit, TestProfileEdit.phone)
+        TestLikeItem.phone.reset()
+
+    def setup_method(self):
+        self.user, self.item = TestLikeItem.it.next()
+        loginSection = LoginSection(TestLikeItem.phone)
+        loginSection.loginSuccessfully(self.user)
+
+    def test_like_my_item(self):
+        friends_list = HorizontalFriendsListSection(TestLikeItem.phone)
+        mySection = friends_list.pressMe(self.user)
+        mySection.whatIWantList.pressLikeItem({'name':self.item.itemName, 'by':self.user.internalName})
+        assert mySection.whatIWantList.itemLikeCount({'name':self.item.itemName, 'by':self.user.internalName}) == 1
+        mySection.whatIWantList.pressLikeItem({'name':self.item.itemName, 'by':self.user.internalName})
+        assert mySection.whatIWantList.itemLikeCount({'name':self.item.itemName, 'by':self.user.internalName}) == 0
+        mySection.whatIWantList.pressLikeItem({'name': self.item.itemName, 'by': self.user.internalName})
+        assert mySection.whatIWantList.itemLikeCount({'name':self.item.itemName, 'by':self.user.internalName}) == 1
+        item_page = mySection.whatIWantList.pressItem({'name': self.item.itemName, 'by': self.user.internalName})
+        assert item_page.likeCount == 1
+        item_page.pressLikeButton()
+        assert item_page.likeCount == 0
+        mySection = item_page.pressBackArrow()
+        assert mySection.whatIWantList.itemLikeCount({'name':self.item.itemName, 'by':self.user.internalName}) == 0
+
+

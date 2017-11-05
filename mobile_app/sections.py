@@ -237,7 +237,21 @@ class ItemListSection(Section):
         item = self.findItem(item)
         item['element'].click()
         return ViewItemSection(self.driver)
-        
+
+    def pressLikeItem(self, item):
+        try:
+            item = self.findItem(item)['element']
+            self.findElementFromElement(self.locator.LIKE_BUTTON, item).click()
+        except:
+            raise
+
+    def itemLikeCount(self, item):
+        try:
+            item = self.findItem(item)['element']
+            return int(self.findElementFromElement(self.locator.LIKE_COUNT_TEXT, item).text)
+        except:
+            raise
+
     def _getContext(self):
         return self.findElement(* self.locator.ITEM_LIST_CONTEXT).text
         
@@ -390,6 +404,13 @@ class ViewItemSection(Section):
 
     def pressEditItem(self):
         self.findElement(*self.locator.EDIT_BUTTON).click()
+
+    def pressLikeButton(self):
+        self.findElement(*self.locator.LIKE_BUTTON).click()
+
+    @property
+    def likeCount(self):
+        return self.findElement(*self.locator.LIKE_COUNT_TEXT).text
 
 
 class ReviewListSection(Section):

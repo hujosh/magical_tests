@@ -9,6 +9,7 @@
   "tests/mobile_test.py::TestFriendEdit::()::test_invalid_first_name_change[]": true,
   "tests/mobile_test.py::TestFriendEdit::()::test_valid_first_name_change[NEW]": true,
   "tests/mobile_test.py::TestFriendEdit::()::test_valid_last_name_change[NEW]": true,
+  "tests/mobile_test.py::TestLikeItem::()::test_like_my_item": true,
   "tests/mobile_test.py::TestProfileEdit::()::test_first_name_valid[P\\xf6k\\xe9m\\xf6n]": true,
   "tests/mobile_test.py::TestReview::()::test_add_invalidReview[emptyReviewText-Comment is required.]": true,
   "tests/mobile_test.py::TestReview::()::test_add_validReview[fiveStarReview]": true,

@@ -71,7 +71,9 @@ class ItemListSectionLocators(BaseSectionLocators):
     ITEM = (MobileBy.ID, 'main_item_cardview')
     ITEM_NAME_TEXT = (MobileBy.ID, 'main_item_cardview_textview_title')
     BY_TEXT   = (MobileBy.ID, 'main_item_cardview_textview_by')
-    NO_ITEMS_FOUND_TEXT = (MobileBy.ID, 'main_item_no_items_text_view') 
+    NO_ITEMS_FOUND_TEXT = (MobileBy.ID, 'main_item_no_items_text_view')
+    LIKE_BUTTON = (MobileBy.ID, 'main_item_cardview_like_button')
+    LIKE_COUNT_TEXT = (MobileBy.ID, 'main_item_cardview_like_count')
     
     
 class FriendItemListSectionLocators(ItemListSectionLocators):
@@ -87,7 +89,8 @@ class HorizontalFriendsListSectionLocators(BaseSectionLocators):
     FRIEND       = (MobileBy.ID, 'main_friend_circleimageview')
     FRIEND_NAME  = (MobileBy.ID, 'main_friend_first_name')
     RIGHT_ARROW_BUTTON  = (MobileBy.ID, 'main_friend_view_arrow')
-    
+
+
 class AddItemSectionLocators(BaseSectionLocators):
     ACTIVITY            = 'com.android.magical.Presentation.ItemDetails.ItemDetailsActivity'
 
@@ -108,7 +111,9 @@ class ViewItemSectionLocators(BaseSectionLocators):
     REVIEW = (MobileBy.ID, 'review_layout_text_layout')
     DELETE_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Delete")')
     EDIT_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Edit")')
-    
+    LIKE_BUTTON  = (MobileBy.ANDROID_UIAUTOMATOR, 'edit_item_details_like_button')
+    LIKE_COUNT_TEXT  = (MobileBy.ANDROID_UIAUTOMATOR, 'edit_item_details_like_count')
+
 class ReviewListSectionLocators:
     ACTIVITY  = "com.android.magical.Presentation.EditItemDetails.EditItemDetailsActivity"
 
