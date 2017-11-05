@@ -16,7 +16,7 @@ host = 'http://localhost:4723/wd/hub'
 desired_caps = {}
 desired_caps['deviceName'] = 'D1AGAS3770501528'
 # Returns abs path relative to this file and not cwd
-desired_caps['app'] = os.path.abspath(r'apps\296.apk')
+desired_caps['app'] = os.path.abspath(r'apps\delayedaddbuild.apk')
 desired_caps['appPackage'] = 'magicalconnect.android.magical.dev'
 desired_caps['appActivity'] = 'com.android.magical.Presentation.SplashScreen.SplashScreenActivity'
 desired_caps['browserName'] = ""
@@ -55,9 +55,24 @@ def getLoggedinUser(pre_defined_user=None):
     user.http.login()
     return user
 
+def save_screenshot(request):
+    directory = os.path.join(os.path.join('%s' % os.path.dirname(os.path.abspath(__file__)),"android_images"),
+                             request.cls.__name__)
+    if not(os.path.exists(directory)):
+        os.makedirs(directory)
+    image_name = request.node.name+".png"
+    request.cls.phone.save_screenshot(os.path.join(directory,image_name))
+
 def getRandomString(length):
     return ''.join(choice(ascii_uppercase) for i in range(User.MAX_USERNAME+1))
 
+@pytest.fixture(autouse=True)
+def clean(request):
+    yield
+    if request.node.rep_setup.failed or request.node.rep_call.failed:
+        save_screenshot(request)
+
+pytestmark = pytest.mark.usefixtures("clean")
 
 class TestLogin:
     @classmethod
@@ -68,7 +83,7 @@ class TestLogin:
     def teardown_class(cls):
         cls.phone.quit()
 
-    def teardown_method(cls):
+    def teardown_method(cls, method):
         cls.phone.reset()
 
     def setup_method(self):
@@ -120,7 +135,7 @@ class TestSignup:
     def teardown_class(cls):
         cls.phone.quit()
 
-    def teardown_method(cls):
+    def teardown_method(cls, method):
         cls.phone.reset()
 
     def setup_method(self):
@@ -196,7 +211,7 @@ class TestForgotPassword:
     def teardown_class(cls):
         cls.phone.quit()
 
-    def teardown_method(cls):
+    def teardown_method(cls, method):
         cls.phone.reset()
 
     def forgot_password(cls, user, expected_message):
@@ -234,22 +249,30 @@ class TestForgotPassword:
 
 class TestAddItem:
     @classmethod
+    def create_account(cls, user):
+        user.http.createAccount()
+        user.http.login()
+        return user
+
+    @classmethod
     def setup_class(cls):
         cls.phone = webdriver.Remote(host, desired_caps)
-        cls.user = User()
-        cls.user.http.createAccount()
-        loginSection = LoginSection(cls.phone)
-        cls.mainSection = loginSection.loginSuccessfully(cls.user)
+        cls.users = [User() for i in range(15)]
+        cls.p = Pool(15)
+        cls.it = TestAddItem.p.imap(cls.create_account, cls.users)
 
     @classmethod
     def teardown_class(cls):
         cls.phone.quit()
 
-    def teardown_method(self):
-        goBackToMainSection(TestAddItem, TestAddItem.phone)
+    def teardown_method(self, method):
+        #goBackToMainSection(TestAddItem, TestAddItem.phone)
+        TestAddItem.phone.reset()
 
     def setup_method(self):
-        self.user = TestAddItem.user
+        self.user = TestAddItem.it.next()
+        loginSection = LoginSection(TestAddItem.phone)
+        TestAddItem.mainSection = loginSection.loginSuccessfully(self.user)
         TestAddItem.mainSection.pressPlus()
         TestAddItem.addItemSection = TestAddItem.mainSection.pressAddItem()
 
@@ -464,31 +487,47 @@ class TestAddFriend:
         mainSection = self.addFriendSection.addFriendSuccessfully(friend)
         assertFriendPresent(friend, TestAddFriend.phone)
 
+    def test_add_friend_whose_email_same_as_current_friends(self):
+        friend = User()
+        friend.http.createAccount()
+        self.user.http.login()
+        friend2 = User()
+        friend2.email = friend.email
+        self.user.http.addFriend(friend)
+        self.addFriendSection.addFriendUnsuccessfully(friend2)
+        assert self.addFriendSection.sectionPresent()
+        self.addFriendSection.pressBackArrow()
+        assertFriendNotPresent(friend2, TestAddFriend.phone)
+
 class TestFriendEdit:
     @classmethod
     def create_account(cls, user):
         user.http.createAccount()
-        return user
+        user.http.login()
+        friend = User()
+        user.http.addFriend(friend)
+        return user, friend
 
     @classmethod
     def setup_class(cls):
         cls.phone = webdriver.Remote(host, desired_caps)
-        cls.user = getLoggedinUser()
-        loginSection = LoginSection(TestFriendEdit.phone)
-        loginSection.loginSuccessfully(cls.user)
+        cls.users = [User() for i in range(15)]
+        cls.p = Pool(15)
+        cls.it = TestFriendEdit.p.imap(cls.create_account, cls.users)
 
     @classmethod
     def teardown_class(cls):
         cls.phone.quit()
 
     def teardown_method(self):
-        goBackToMainSection(TestFriendEdit, TestFriendEdit.phone)
+        #goBackToMainSection(TestFriendEdit, TestFriendEdit.phone)
+        TestFriendEdit.phone.reset()
 
     def setup_method(self):
         try:
-            self.user = TestFriendEdit.user
-            self.friend = User()
-            self.user.http.addFriend(self.friend)
+            self.user, self.friend = TestFriendEdit.it.next()
+            loginSection = LoginSection(TestFriendEdit.phone)
+            loginSection.loginSuccessfully(self.user)
             horFriendList = HorizontalFriendsListSection(TestFriendEdit.phone)
             verFriendList = horFriendList.pressRightArrow()
             friendSection = verFriendList.pressFriend(self.friend)
@@ -557,6 +596,9 @@ class TestFriendEdit:
         self.friendProfile.enterEmailAddress(self.friend)
         self.friendProfile.pressSave()
         assert self.friendProfile.sectionPresent()
+        friendSection = self.friendProfile.pressBackArrow()
+        friendProfile = friendSection.pressEditFriend()
+        assert friendProfile.emailField == old_email
 
     def test_change_email_to_blank(self):
         old_email = self.friend.email
@@ -564,6 +606,9 @@ class TestFriendEdit:
         self.friendProfile.enterEmailAddress(self.friend)
         self.friendProfile.pressSave()
         assert self.friendProfile.sectionPresent()
+        friendSection = self.friendProfile.pressBackArrow()
+        friendProfile = friendSection.pressEditFriend()
+        assert friendProfile.emailField == self.friend.email
 
     def test_change_email_to_random_valid_email(self):
         old_email = self.friend.email
@@ -571,6 +616,9 @@ class TestFriendEdit:
         self.friendProfile.enterEmailAddress(self.friend)
         self.friendProfile.pressSave()
         assert self.friendProfile.sectionPresent()
+        friendSection = self.friendProfile.pressBackArrow()
+        friendProfile = friendSection.pressEditFriend()
+        assert friendProfile.emailField == self.friend.email
 
     def test_change_email_to_that_of_extant_friend(self):
         # create a new friend...
@@ -581,6 +629,9 @@ class TestFriendEdit:
         self.friendProfile.enterEmailAddress(self.friend)
         self.friendProfile.pressSave()
         assert self.friendProfile.sectionPresent()
+        friendSection = self.friendProfile.pressBackArrow()
+        friendProfile = friendSection.pressEditFriend()
+        assert friendProfile.emailField == old_email
 
 
 class TestDeleteFriend:
@@ -790,17 +841,3 @@ class TestProfileEdit:
 
     def test_change_privacy(self):
         pass'''
-
-
-class Test:
-    def test(self):
-        phone = webdriver.Remote(host, desired_caps)
-        user = User()
-        user.http.createAccount()
-        login_section = LoginSection(phone)
-        login_section.loginSuccessfully(user)
-        friends_list = HorizontalFriendsListSection(phone)
-        friend = User()
-        friend.setFirstName("Zero")
-        friend.setLastName("Test")
-        assert friends_list.friendInList(friend)

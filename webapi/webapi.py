@@ -1,4 +1,7 @@
+import time
+
 import requests
+
 
 class HTTP:
     def __init__(self, user, domain = 'magic.al', site = 'dev'):
@@ -88,6 +91,7 @@ class HTTP:
             self._checkResponseForError(response)  
         except:
             raise
+        time.sleep(5)  # sleep for 5 seconds because of a bug in Solr
         return response.json()
         
     def addFriend(self, friend):
@@ -109,6 +113,7 @@ class HTTP:
             self._checkResponseForError(response)  
         except:
             raise
+        time.sleep(5)  # sleep for 5 seconds because of a bug in Solr
         return response.json()    
         
     def _getGuid(self):

@@ -75,6 +75,7 @@ class Section(object):
         
     def enterText(self, element, text):
         '''Enter text into the element, and then get rid of the software keyboard.'''
+        element.click()
         element.clear()
         if text != "":
             element.send_keys(text)
@@ -126,7 +127,6 @@ class Section(object):
         y_end = el2.location['y']
         self.driver.swipe(x_start + 300, y_start, x_start, y_start)
 
-        #self.driver.scroll(el1, el2)
 
     @property
     def toastText(self):

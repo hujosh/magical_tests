@@ -514,7 +514,7 @@ class FriendEditSection(Section):
     def enterFirstName(self, friend):
         self.enterText(self.findElement(*self.locator.FIRST_NAME_FIELD), friend.firstName)
         
-    def enterLastname(self, friend):
+    def enterLastName(self, friend):
         self.enterText(self.findElement(*self.locator.LAST_NAME_FIELD), friend.lastName)
     
     def enterBirthday(self, friend):
