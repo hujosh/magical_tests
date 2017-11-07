@@ -403,7 +403,9 @@ class ViewItemSection(Section):
         return ReviewSection(self.driver)
 
     def pressEditItem(self):
+        self.pressHamburger()
         self.findElement(*self.locator.EDIT_BUTTON).click()
+        return EditItemSection(self.driver)
 
     def pressLikeButton(self):
         self.findElement(*self.locator.LIKE_BUTTON).click()
@@ -411,6 +413,18 @@ class ViewItemSection(Section):
     @property
     def likeCount(self):
         return self.findElement(*self.locator.LIKE_COUNT_TEXT).text
+
+    @property
+    def itemName(self):
+        return self.findElement(*self.locator.ITEM_NAME_TEXT).text
+
+    @property
+    def qty(self):
+        return self.findElement(*self.locator.QTY_TEXT).text
+
+    @property
+    def description(self):
+        return self.findElement(*self.locator.DESCRIPTION_TEXT).text
 
 
 class ReviewListSection(Section):
@@ -650,8 +664,20 @@ class EditItemSection(Section):
     def enterDescription(self, item):
             self.enterText(self.findElement(*self.locator.DESCRIPTION_FIELD), item.description)
 
-    def pressSave(self):
+    def _pressSave(self):
         self.finElement(*self.locator.SAVE_BUTTON).click()
+
+    def pressSaveSuccessfully(self):
+        self._pressSave()
+        return ViewItemSection(self.driver)
+
+    def pressSaveUnsuccessfully(self):
+        self._pressSave()
+        return AlertSection(self.driver)
+
+    def pressBackArrow(self):
+        super().pressBackArrow()
+        return ViewItemSection(self.driver)
 
 
 class ProfileSection(Section):

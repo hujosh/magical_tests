@@ -11,6 +11,7 @@ from magical.reviews import Review
 from magical.users import User
 from mobile_app.sections import *
 
+
 host = 'http://localhost:4723/wd/hub'
 # Information about the phone; all tests use this dictionary...
 desired_caps = {}
@@ -26,6 +27,7 @@ desired_caps['platformName'] = "Android"
 desired_caps["unicodeKeyboard"] = True
 desired_caps["resetKeyboard"]= True
 desired_caps["automationName "]= 'uiautomator2'
+desired_caps["platformVersion"] = "7.1.2"
 
 
 def assertFriendNotPresent(friend, phone):
@@ -424,6 +426,7 @@ class TestReview:
         # def test_delete_review(cls):
         #    pass
 
+
 class TestAddFriend:
     @classmethod
     def setup_class(cls):
@@ -674,35 +677,65 @@ class TestDeleteFriend:
 
 class TestEditItem():
     @classmethod
+    def create_account(cls, user):
+        user.http.createAccount()
+        user.http.login()
+        item = Item()
+        user.http.addItem(item)
+        return user,item
+
+
+    @classmethod
     def setup_class(cls):
         cls.phone = webdriver.Remote(host, desired_caps)
-        cls.user = User()
-        cls.user.http.createAccount()
-        cls.user.http.login()
-        loginSection = LoginSection(cls.phone)
-        loginSection.loginSuccessfully(cls.user)
+        cls.users = [User() for i in range(15)]
+        cls.p = Pool(15)
+        cls.it = TestEditItem.p.imap(cls.create_account, cls.users)
+
 
     @classmethod
     def teardown_class(cls):
         cls.phone.quit()
 
     def teardown_method(self):
-        goBackToMainSection(TestEditItem, TestEditItem.phone)
+        #goBackToMainSection(TestEditItem, TestEditItem.phone)
+        TestEditItem.phone.reset()
 
     def setup_method(self):
-        self.user = TestEditItem.user
-        self.item = Item()
-        self.user.http.addItem(self.item)
+        self.user, self.item = TestEditItem.it.next()
+        loginSection = LoginSection(TestEditItem.phone)
+        loginSection.loginSuccessfully(self.user)
         horFriendList = HorizontalFriendsListSection(TestEditItem.phone)
         mySection = horFriendList.pressMe(self.user)
         itemSection = mySection.whatIWantList.pressItem({'name': self.item.validatedItemName, 'by': self.user.internalName})
         self.editItemSection = itemSection.pressEditItem()
 
-    def test_valid_name_change(self):
-        old_name = self.item.itemName
-        self.item.itemName = "poo"
+    @pytest.mark.parametrize("name", [
+        'NEW',
+    ])
+    def test_valid_name_change(self, name):
+        self.item.itemName = name
         self.editItemSection.enterName(self.item)
-        self.editItemSection.pressSave()
+        item_page = self.editItemSection.pressSaveSuccessfully()
+        assert item_page.itemName == self.item.itemName
+
+    @pytest.mark.parametrize("name", [
+        ' ', # space
+        '', # empty
+    ])
+    def test_invalid_name_change(self, name):
+        old_name = self.item.itemName
+        self.item.itemName = name
+        self.editItemSection.enterName(self.item)
+        alert = self.editItemSection.pressSaveUnsuccessfully()
+        assert alert.title == "Invalid field"
+        assert alert.message == "Item must have a name."
+        alert.pressOk()
+        assert self.editItemSection.sectionPresent()
+        item_page = self.editItemSection.pressBackArrow()
+        assert item_page.itemName == old_name
+
+
 
 class TestProfile:
     @classmethod

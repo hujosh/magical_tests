@@ -1,21 +1,5 @@
 {
-  "tests/mobile_test.py::Test::()::test": true,
-  "tests/mobile_test.py::TestAddFriend::()::test_add_valid_non_magical_friend[funnyCharInFirstName]": true,
-  "tests/mobile_test.py::TestAddFriend::()::test_add_valid_non_magical_friend[funnyCharInLastName]": true,
-  "tests/mobile_test.py::TestAddItem::()::test_add_item_with_invalidPrice[priceTooLarge]": true,
-  "tests/mobile_test.py::TestAddItem::()::test_add_item_with_validName[itemNameHasFunnyCharacters]": true,
-  "tests/mobile_test.py::TestAddItem::()::test_add_item_with_validPrice[priceIsEmpty]": true,
-  "tests/mobile_test.py::TestEditItem::()::test_valid_name_change": true,
-  "tests/mobile_test.py::TestFriendEdit::()::test_invalid_first_name_change[]": true,
-  "tests/mobile_test.py::TestFriendEdit::()::test_valid_first_name_change[NEW]": true,
-  "tests/mobile_test.py::TestFriendEdit::()::test_valid_last_name_change[NEW]": true,
-  "tests/mobile_test.py::TestLikeItem::()::test_like_my_item": true,
-  "tests/mobile_test.py::TestProfileEdit::()::test_first_name_valid[P\\xf6k\\xe9m\\xf6n]": true,
-  "tests/mobile_test.py::TestReview::()::test_add_invalidReview[emptyReviewText-Comment is required.]": true,
-  "tests/mobile_test.py::TestReview::()::test_add_validReview[fiveStarReview]": true,
-  "tests/mobile_test.py::TestReview::()::test_add_validReview[fourStarReview]": true,
-  "tests/mobile_test.py::TestReview::()::test_add_validReview[oneStarReview]": true,
-  "tests/mobile_test.py::TestReview::()::test_add_validReview[threeStarReview]": true,
-  "tests/mobile_test.py::TestReview::()::test_add_validReview[twoStarReview]": true,
-  "tests/mobile_test.py::TestReview::()::test_add_validReview[zeroStarReview]": true
+  "tests/mobile_test.py::TestEditItem::()::test_invalid_name_change[ ]": true,
+  "tests/mobile_test.py::TestEditItem::()::test_invalid_name_change[]": true,
+  "tests/mobile_test.py::TestEditItem::()::test_valid_name_change[NEW]": true
 }

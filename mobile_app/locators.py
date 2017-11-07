@@ -111,8 +111,12 @@ class ViewItemSectionLocators(BaseSectionLocators):
     REVIEW = (MobileBy.ID, 'review_layout_text_layout')
     DELETE_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Delete")')
     EDIT_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Edit")')
-    LIKE_BUTTON  = (MobileBy.ANDROID_UIAUTOMATOR, 'edit_item_details_like_button')
-    LIKE_COUNT_TEXT  = (MobileBy.ANDROID_UIAUTOMATOR, 'edit_item_details_like_count')
+    LIKE_BUTTON  = (MobileBy.ID, 'edit_item_details_like_button')
+    LIKE_COUNT_TEXT  = (MobileBy.ID, 'edit_item_details_like_count')
+    ITEM_NAME_TEXT = (MobileBy.ID, 'edit_item_details_title_edit_text')
+    QTY_TEXT = (MobileBy.ID, 'edit_item_details_qty_edit_text')
+    DESCRIPTION_TEXT = (MobileBy.ID, 'edit_item_details_description_edit_text')
+
 
 class ReviewListSectionLocators:
     ACTIVITY  = "com.android.magical.Presentation.EditItemDetails.EditItemDetailsActivity"
