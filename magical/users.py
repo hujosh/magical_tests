@@ -15,7 +15,7 @@ class User:
                   'firstName', 'lastName', 'internalName', "bio", "website", "tagline"]
     NAMES     =  ['Josh', 'David', 'Kyle', 'Emmanuel', 'Rohan', 'Russel', 'Goddard',
                    'Olton', 'Spencer', 'Phillips', 'Amadio', 'Calydris', "Smith", "Fong",
-                  "Judy", "Linda", "Jai", "Bin", "Lucy", "Olivia", "Matthew", "Leigh", "Nick",
+                  "Judy", "Linda", "Jai", "Bin", "Lucy", "Matthew", "Leigh", "Nick",
                   "Birnie", "James", "Erin", "Bernard", "Jeniffer", "Deb", "Jessica"]
     PASSWORD  = 'oryx*967'
 

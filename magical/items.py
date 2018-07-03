@@ -67,10 +67,14 @@ class Item:
         punctuation = punctuation.replace(".", "")
         punctuation = punctuation.replace("$", "")
         validation_string = "%s %s"%(string.ascii_letters, punctuation)
+        self.price = self._roundDown(self.price)
         try:
             return str("${:,.2f}".format(float(self.price.strip(validation_string))))
         except:
             return '$0.00'
+
+    def _roundDown(self, price):
+      return price[:8]
  
     def __str__(self):
         return self.itemName

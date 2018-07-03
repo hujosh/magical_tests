@@ -1,5 +1,3 @@
 {
-  "tests/mobile_test.py::TestEditItem::()::test_invalid_name_change[ ]": true,
-  "tests/mobile_test.py::TestEditItem::()::test_invalid_name_change[]": true,
-  "tests/mobile_test.py::TestEditItem::()::test_valid_name_change[NEW]": true
+  "tests/mobile_test.py::TestAddEvent::()::test_add_event": true
 }

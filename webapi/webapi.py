@@ -91,6 +91,7 @@ class HTTP:
             self._checkResponseForError(response)  
         except:
             raise
+
         time.sleep(5)  # sleep for 5 seconds because of a bug in Solr
         return response.json()
         

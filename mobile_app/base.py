@@ -1,4 +1,5 @@
 import time
+import subprocess
 
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
@@ -72,15 +73,15 @@ class Section(object):
         time.sleep(1)
         self.findElement(*BaseSectionLocators.THROBBER, 
             expectedCondition = EC.invisibility_of_element_located)
-        
-    def enterText(self, element, text):
+
+    def enterText(self, element, text, clear = False):
         '''Enter text into the element, and then get rid of the software keyboard.'''
-        element.click()
-        element.clear()
+        if clear == True:
+            element.clear()
         if text != "":
-            element.send_keys(text)
-            self.remove_keyboard()
-           
+            element.set_value(text)
+            #self.remove_keyboard()
+
     def flick(self, direction):
         '''flick the screen down, up, left, or right, a little bit.'''
         if direction == 'down':
@@ -107,11 +108,10 @@ class Section(object):
     def pressBackArrow(self):
         self.findElement(*self.locator.BACK_ARROW_BUTTON).click()
      
-    def _PutAppInBackground(self):
+    def _PutAppInBackground(self, background_time =0.5):
         # This is a workaround to a bug
         time.sleep(1)
-        self.driver.background_app(0.5)
-        pass
+        self.driver.background_app(background_time)
         
     def assertToastTextEquals(self, expected_toast_text):
         toast_text = self.toastText
@@ -127,11 +127,10 @@ class Section(object):
         y_end = el2.location['y']
         self.driver.swipe(x_start + 300, y_start, x_start, y_start)
 
-
     @property
     def toastText(self):
         return self.findElement(*self.locator.TOAST, 
-            expectedCondition = EC.presence_of_element_located).text
+            expectedCondition = EC.visibility_of_element_located).text
     
     def _getElementName(self, locator):
         classes = self.locator.mro()
@@ -143,3 +142,19 @@ class Section(object):
 
     def pressHamburger(self):
         self.findElement(*self.locator.HAMBURGER_BUTTON).click()
+
+
+class PhoneNetwork:
+    def __init__(self):
+        pass
+
+    def _set_wifi(self, status):
+        subprocess.run("adb shell am broadcast -a io.appium.settings.wifi --es setstatus %s" % status)
+
+    def _set_data(selfself, status):
+        subprocess.run("adb shell svc data %s" % status)
+
+    def set_network_connection(self, status):
+        self._set_wifi(status)
+        self._set_data(status)
+

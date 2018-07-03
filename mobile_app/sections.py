@@ -1,5 +1,7 @@
 import copy
 import time
+import re
+
 
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -67,14 +69,14 @@ class LoginSection(Section):
         self.activity = self.locator.ACTIVITY
         super().__init__(driver, **kwargs)
         
-    def enterEmail(self, user):
-        self.enterText(self.findElement(* self.locator.EMAIL_FIELD), user.email)
+    def enterEmail(self, user, clear = False):
+        self.enterText(self.findElement(* self.locator.EMAIL_FIELD), user.email, clear)
         
-    def enterUsername(self, user):
-        self.enterText(self.findElement(* self.locator.USERNAME_FIELD), user.username)
+    def enterUsername(self, user, clear = False):
+        self.enterText(self.findElement(* self.locator.USERNAME_FIELD), user.username, clear)
             
-    def enterPassword(self, user):
-        self.enterText(self.findElement(* self.locator.PASSWORD_FIELD), user.password)
+    def enterPassword(self, user, clear = False):
+        self.enterText(self.findElement(* self.locator.PASSWORD_FIELD), user.password, clear)
         
     def pressForgotPassword(self):
         self.findElement(* self.locator.FORGOT_PASSWORD_BUTTON).click()
@@ -87,23 +89,23 @@ class LoginSection(Section):
     def pressLogin(self):
         self.findElement(* self.locator.LOGIN_BUTTON).click()
         
-    def loginSuccessfully(self, user, withEmail = True):
+    def loginSuccessfully(self, user, withEmail = True, clear = False):
         if withEmail == True:
-            self.enterEmail(user)
+            self.enterEmail(user, clear = clear)
         else:
-            self.enterUsername(user)
-        self.enterPassword(user)
+            self.enterUsername(user, clear=clear)
+        self.enterPassword(user,clear=clear)
         self.pressLogin()
         # This is so we can keep tack of which user is logged in...
         self._setLoggedinUser(user)
         return MainSection(self.driver)
     
-    def loginUnsuccessfully(self, user, withEmail = True):
+    def loginUnsuccessfully(self, user, withEmail = True, clear = False):
         if withEmail == True:
             self.enterEmail(user)
         else:
-            self.enterUsername(user)
-        self.enterPassword(user)
+            self.enterUsername(user,clear=clear)
+        self.enterPassword(user,clear=clear)
         self.pressLogin()
         return AlertSection(self.driver)
          
@@ -198,9 +200,13 @@ class MainSection(Section):
 
     def pressSettingsButton(self):
         self.findElement(* self.locator.SETTINGS_BUTTON).click()
-        return SettingsSection(self.driver)     
-              
-              
+        return SettingsSection(self.driver)
+
+    def pressToggleCalendarButton(self):
+        self.findElement(*self.locator.TOGGLE_CALENDAR_BUTTON).click()
+        return CalendarSection(self.driver)
+
+
 class ItemListSection(Section):
     def __init__(self, driver, **kwargs):
         self.locator = ItemListSectionLocators
@@ -224,7 +230,7 @@ class ItemListSection(Section):
                     try:
                         name = self.findElementFromElement(self.locator.ITEM_NAME_TEXT, item).text
                         by   = self.findElementFromElement(self.locator.BY_TEXT, item).text
-                        if find_item['name'] == name and (('By '+ find_item['by']) == by):
+                        if find_item['name'] == name and (find_item['by'] == by):
                             find_item['element'] = item
                             return find_item
                     except ElementNotFound:
@@ -232,7 +238,15 @@ class ItemListSection(Section):
                 i += 1            
                 self.flick('down')
         raise ItemNotFound('Could not find the item with name "%s" by "%s" in item list'%(find_item['name'], find_item['by']))
-        
+
+
+    def itemInList(self, item):
+        try:
+            self.findItem(item)
+            return True
+        except:
+            return False
+
     def pressItem(self, item):
         item = self.findItem(item)
         item['element'].click()
@@ -241,6 +255,8 @@ class ItemListSection(Section):
     def pressLikeItem(self, item):
         try:
             item = self.findItem(item)['element']
+            self.flick("down")
+            time.sleep(2)
             self.findElementFromElement(self.locator.LIKE_BUTTON, item).click()
         except:
             raise
@@ -275,15 +291,19 @@ class FriendItemListSection(ItemListSection):
     
     
 class HorizontalFriendsListSection(Section):
-    def __init__(self, driver, **kwargs):
+    def __init__(self, driver,**kwargs):
         self.locator = HorizontalFriendsListSectionLocators
         self.activity =  self.locator.ACTIVITY
         super().__init__(driver, **kwargs)
          
     def isSectionLoaded(self):
         super().isSectionLoaded()
-        self.findElement(* self.locator.FRIENDS_LIST)
-        
+        try:
+            self.findElement(* self.locator.FRIENDS_LIST)
+        except:
+            self.findElement(*MainSectionLocators.SHOW_FRIENDS_LIST_BUTTON).click()
+            self.findElement(* self.locator.FRIENDS_LIST)
+
     def friendInList(self, friend, nscrolls = 3):
         if nscrolls == 0:
             return False
@@ -314,8 +334,8 @@ class HorizontalFriendsListSection(Section):
     def pressRightArrow(self):
         self.findElement(*self.locator.RIGHT_ARROW_BUTTON).click()
         return VerticalFriendsListSection(self.driver)
-        
-        
+
+
 class VerticalFriendsListSection(Section):
     def __init__(self, driver, **kwargs):
         self.locator = VerticalFriendsListSectionLocators
@@ -412,7 +432,7 @@ class ViewItemSection(Section):
 
     @property
     def likeCount(self):
-        return self.findElement(*self.locator.LIKE_COUNT_TEXT).text
+        return int(self.findElement(*self.locator.LIKE_COUNT_TEXT).text)
 
     @property
     def itemName(self):
@@ -426,6 +446,15 @@ class ViewItemSection(Section):
     def description(self):
         return self.findElement(*self.locator.DESCRIPTION_TEXT).text
 
+    def pressBackArrow(self):
+        super().pressBackArrow()
+
+    def deleteItem(self):
+        self.pressHamburger()
+        self.findElement(*self.locator.DELETE_BUTTON).click()
+        alert = AlertSection(self.driver)
+        alert.pressYes()
+        return LoggedinUserSection(self.driver)
 
 class ReviewListSection(Section):
     def __init__(self, driver, **kwargs):
@@ -436,6 +465,7 @@ class ReviewListSection(Section):
     def reviewInList(self, review, nscrolls = 3):
         if nscrolls == 0:
             return False
+        time.sleep(3)
         reviews = self.findElements(*self.locator.REVIEW)
         for review_element in reviews:
             reviewer = self.findElementFromElement(self.locator.REVIEWER_TEXT, review_element).text
@@ -445,8 +475,7 @@ class ReviewListSection(Section):
         self.flick("down")
         nscrolls -= 1
         return self.reviewInList(review,nscrolls)
-         
-         
+
 class SettingsSection(Section):
     def __init__(self, driver, **kwargs):
         self.locator = SettingSectionLocators
@@ -454,9 +483,22 @@ class SettingsSection(Section):
         super().__init__(driver, **kwargs)    
         
     def pressLogoutButton(self): 
-        self.findElement(* self.locator.LOG_OUT_BUTTON).click()
-        
-        
+        self.findElement(*self.locator.LOG_OUT_BUTTON).click()
+
+    def pressUnsyncedItemsButton(self):
+        self.findElement(*self.locator.UNSYNCED_ITEMS_BUTTON).click()
+        return UnsyncedItemsSection(self.driver)
+
+    def pressAdvacedSettingsButton(self):
+        self.findElement(*self.locator.ADVANCED_SETTINGS_BUTTON).click()
+        return AdvancedSettingsSection(self.driver)
+
+    def logOut(self):
+        self.pressLogoutButton()
+        alert = AlertSection(self.driver)
+        alert.pressYes()
+        return LoginSection(self.driver)
+
 class ReviewSection(Section):
     def __init__(self, driver, **kwargs):
         self.locator = ReviewSectionLocators
@@ -542,21 +584,21 @@ class FriendEditSection(Section):
         self.locator = FriendEditSectionLocators
         self.activity =  self.locator.ACTIVITY
         super().__init__(driver, **kwargs)
-        
+
     def pressUploadPhoto(self):
         self.findElement(*self.locator.UPLOAD_PHOTO_BUTTON).click()
 
     def enterFirstName(self, friend):
-        self.enterText(self.findElement(*self.locator.FIRST_NAME_FIELD), friend.firstName)
+        self.enterText(self.findElement(*self.locator.FIRST_NAME_FIELD).clear(), friend.firstName)
         
     def enterLastName(self, friend):
-        self.enterText(self.findElement(*self.locator.LAST_NAME_FIELD), friend.lastName)
+        self.enterText(self.findElement(*self.locator.LAST_NAME_FIELD).clear(), friend.lastName)
     
     def enterBirthday(self, friend):
-        self.enterText(self.findElement(*self.locator.BIRTHDAY_FIELD), friend.birthday)
+        self.enterText(self.findElement(*self.locator.BIRTHDAY_FIELD).clear(), friend.birthday)
     
     def enterEmailAddress(self, friend):
-        self.enterText(self.findElement(*self.locator.EMAIL_ADDRESS_FIELD), friend.email)
+        self.enterText(self.findElement(*self.locator.EMAIL_ADDRESS_FIELD).clear(), friend.email)
 
     def pressHamburger(self):
         self.findElement(*self.locator.HAMBURGER_BUTTON).click()
@@ -623,6 +665,10 @@ class FriendSection(Section):
     @property
     def friendName(self):
         return self.findElement(*self.locator.FRIEND_NAME_TEXT).text
+
+    @property
+    def whatMyFriendWantsList(self):
+        return FriendItemListSection(self.driver)
         
         
 class LoggedinUserSection(Section):
@@ -653,19 +699,19 @@ class EditItemSection(Section):
         super().__init__(driver, **kwargs)
 
     def enterName(self, item):
-        self.enterText(self.findElement(*self.locator.NAME_FIELD), item.itemName)
+        self.enterText(self.findElement(*self.locator.NAME_FIELD).clear(), item.itemName)
 
     def enterPrice(self, item):
-        self.enterText(self.findElement(*self.locator.PRICE_FIELD), item.price)
+        self.enterText(self.findElement(*self.locator.PRICE_FIELD).clear(), item.price)
 
     def enterQuantity(self, item):
-        self.enterText(self.findElement(*self.locator.QUANTITY_FIELD), item.qty)
+        self.enterText(self.findElement(*self.locator.QUANTITY_FIELD).clear(), item.qty)
 
     def enterDescription(self, item):
-            self.enterText(self.findElement(*self.locator.DESCRIPTION_FIELD), item.description)
+            self.enterText(self.findElement(*self.locator.DESCRIPTION_FIELD).clear(), item.description)
 
     def _pressSave(self):
-        self.finElement(*self.locator.SAVE_BUTTON).click()
+        self.findElement(*self.locator.SAVE_BUTTON).click()
 
     def pressSaveSuccessfully(self):
         self._pressSave()
@@ -685,27 +731,32 @@ class ProfileSection(Section):
         self.locator = ProfileSectionLocators
         self.activity = self.locator.ACTIVITY
         super().__init__(driver, **kwargs)
+        try:
+            self.findElement(*self.locator.USERNAME_FIELD)
+        except:
+            self.driver.back()
 
     def enterUsername(self, user):
-        self.enterText(self.findElement(*self.locator.USERNAME_FIELD), user.username)
+        self.enterText(self.findElement(*self.locator.USERNAME_FIELD).clear(), user.username)
 
     def enterTagline(self, user):
-        self.enterText(self.findElement(*self.locator.TAGLINE_FIELD), user.tagline)
+        self.enterText(self.findElement(*self.locator.TAGLINE_FIELD).clear(), user.tagline)
 
     def enterFirstName(self, user):
-        self.enterText(self.findElement(*self.locator.FIRST_NAME_FIELD), user.firstName)
+        self.enterText(self.findElement(*self.locator.FIRST_NAME_FIELD).clear(), user.firstName)
 
     def enterLastName(self, user):
-        self.enterText(self.findElement(*self.locator.LAST_NAME_FIELD), user.lastName)
+        self.enterText(self.findElement(*self.locator.LAST_NAME_FIELD).clear(), user.lastName)
 
     def enterWebsite(self, user):
-        self.enterText(self.findElement(*self.locator.WEBSITE_FIELD), user.website)
+        self.enterText(self.findElement(*self.locator.WEBSITE_FIELD).clear(), user.website)
 
     def enterBio(self, user):
-        self.enterText(self.findElement(*self.locator.BIO_FIELD), user.bio)
+        self.enterText(self.findElement(*self.locator.BIO_FIELD).clear(), user.bio)
 
     def pressSave(self):
         self.findElement(*self.locator.SAVE_BUTTON).click()
+        return LoggedinUserSection(self.driver)
 
     @property
     def username(self):
@@ -734,3 +785,107 @@ class ProfileSection(Section):
     def pressBackArrow(self):
         super().pressBackArrow()
         return LoggedinUserSection(self.driver)
+
+class UnsyncedItemsSection(Section):
+    def __init__(self, driver, **kwargs):
+        self.locator = UnsyncedItemsSectionLocators
+        self.activity = self.locator.ACTIVITY
+        super().__init__(driver, **kwargs)
+
+    def _itemInList(self, item_name, mode, nscrolls =3):
+        items = self.findElements(*self.locator.ITEM)
+        found = False
+        for item in items:
+            name = self.findElementFromElement(self.locator.ITEM_NAME,item).text
+            upload_button =self.findElementFromElement(self.locator.UPLOAD_BUTTON,item)
+            if name == item_name:
+                found = True
+        if found:
+            if mode == "upload":
+                return upload_button
+            elif mode == "edit":
+                return item
+            elif mode == "search":
+                return item
+        elif nscrolls > 0:
+            self.flick('down')
+            self.itemInList(mode,nscrolls-1)
+        else:
+            raise ItemNotFound("Could not find %s in list of unsynced items"%item_name)
+
+    def itemInList(self,item_name):
+        try:
+            self._itemInList(item_name,"search")
+            return True
+        except:
+            return False
+
+
+class AdvancedSettingsSection(Section):
+    def __init__(self,driver,**kwargs):
+        self.locator = AdvancedSettingsSectionLocators
+        self.activity = self.locator.ACTIVITY
+        super().__init__(driver, **kwargs)
+
+    @staticmethod
+    def goTo(driver):
+        mainSection = MainSection(driver)
+        settingsSection = mainSection.pressSettingsButton()
+        advancedSettingsSection = settingsSection.pressAdvacedSettingsButton()
+        return advancedSettingsSection
+
+    def pressChangePasswordButton(self):
+        self.findElement(*self.locator.CHANGE_PASSWORD_BUTTON).click()
+        return ChangePasswordSection(self.driver)
+
+    def pressBackArrow(self):
+        super().pressBackArrow()
+        return SettingsSection(self.driver)
+
+
+class ChangePasswordSection(Section):
+    def __init__(self, driver, **kwargs):
+        self.locator = ChangePasswordSectionLocators
+        self.activity = self.locator.ACTIVITY
+        super().__init__(driver, **kwargs)
+
+    def enterOriginalPassword(self,password):
+        self.enterText(self.findElement(*self.locator.ORIGINAL_PASSWORD_TEXT), password)
+
+    def enterNewPassword(self, password):
+        self.enterText(self.findElement(*self.locator.NEW_PASSWORD_TEXT), password)
+
+    def enterConfirmPassword(self,password):
+        self.enterText(self.findElement(*self.locator.NEW_PASSWORD_CONFIRM_TEXT), password)
+
+    def pressSaveButton(self):
+        self.findElement(*self.locator.SAVE_BUTTON).click()
+
+    @staticmethod
+    def goTo(driver):
+        return AdvancedSettingsSection.goTo(driver).pressChangePasswordButton()
+
+    def pressBackArrow(self):
+        super().pressBackArrow()
+        return AdvancedSettingsSection(self.driver)
+
+class CalendarSection(Section):
+    def __init__(self, driver, **kwargs):
+        self.locator = CalendarSectionLocators
+        self.activity = self.locator.ACTIVITY
+        super().__init__(driver, **kwargs)
+
+    @staticmethod
+    def goTo(self):
+        mainSection = MainSection(self.driver)
+        return mainSection.pressToggleCalendarButton()
+
+    def pressDay(self, day):
+        day = day +6
+        locator =  self.locator.DAY
+        st = locator[1]
+        sa = re.sub('ind',str(day), st)
+        new_locator= (locator[0],sa)
+        self.findElement(new_locator).click()
+
+

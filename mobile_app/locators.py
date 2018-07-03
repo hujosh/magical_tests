@@ -12,7 +12,9 @@ class BaseSectionLocators:
     ITEM_LIST_CONTEXT  = (MobileBy.ID, 'toolbar_main_textview')
     BACK_ARROW_BUTTON  = (MobileBy.XPATH, '//android.widget.ImageButton[@index = "0"]')
     TOAST              = (MobileBy.CLASS_NAME, 'android.widget.Toast')
-    HAMBURGER_BUTTON = (MobileBy.XPATH, '//android.widget.ImageView[@index = "1"]')
+    #TOAST              = (MobileBy.XPATH, '//[text()="placeholder"]')
+    HAMBURGER_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().description("More options")')
+    TOGGLE_CALENDAR_BUTTON = (MobileBy.ID, 'bottom_bar_events')
 
 
 class AlertSectionLocators(BaseSectionLocators):
@@ -62,12 +64,13 @@ class MainSectionLocators(BaseSectionLocators):
     TOGGLE_FRIENDS_LIST_BUTTON  = (MobileBy.ID, 'main_who_button')
     SETTINGS_BUTTON             = (MobileBy.XPATH, '//android.view.ViewGroup/android.widget.ImageButton')
     ADD_FRIEND_BUTTON           = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Add Friend")')
-    
+    SHOW_FRIENDS_LIST_BUTTON    = (MobileBy.ID, 'bottom_bar_friends')
+
     
 class ItemListSectionLocators(BaseSectionLocators):
     ACTIVITY  = MainSectionLocators.ACTIVITY
     
-    ITEM_LIST = (MobileBy.ID, 'main_item_view_container')
+    ITEM_LIST = (MobileBy.ID, 'main_view_pager')
     ITEM = (MobileBy.ID, 'main_item_cardview')
     ITEM_NAME_TEXT = (MobileBy.ID, 'main_item_cardview_textview_title')
     BY_TEXT   = (MobileBy.ID, 'main_item_cardview_textview_by')
@@ -79,7 +82,7 @@ class ItemListSectionLocators(BaseSectionLocators):
 class FriendItemListSectionLocators(ItemListSectionLocators):
     ACTIVITY  = 'com.android.magical.Presentation.ViewFriend.ViewFriendActivity'
     
-    ITEM_LIST = (MobileBy.ID, 'view_friend_item_refreshLayout') 
+    ITEM_LIST = (MobileBy.ID, 'view_friend_view_pager')
     
     
 class HorizontalFriendsListSectionLocators(BaseSectionLocators):
@@ -122,7 +125,7 @@ class ReviewListSectionLocators:
     ACTIVITY  = "com.android.magical.Presentation.EditItemDetails.EditItemDetailsActivity"
 
     REVIEW = (MobileBy.ID, 'review_layout_text_layout')
-    REVIEWER_TEXT = (MobileBy.XPATH, '//android.widget.RelativeLayout[@index="0"]')
+    REVIEWER_TEXT = (MobileBy.ID, 'review_layout_text_author')
     REVIEW_TEXT  = (MobileBy.ID, 'review_layout_text_content')
     
     
@@ -130,7 +133,8 @@ class SettingSectionLocators(BaseSectionLocators):
     ACTIVITY = MainSectionLocators.ACTIVITY
     
     LOG_OUT_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Log Out")')
-    
+    UNSYNCED_ITEMS_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Unsynced Items")')
+    ADVANCED_SETTINGS_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Settings")')
     
 class ReviewSectionLocators(BaseSectionLocators):
     ACTIVITY = 'com.android.magical.Presentation.AddReview.AddReviewActivity'
@@ -163,7 +167,7 @@ class VerticalFriendsListSectionLocators(BaseSectionLocators):
     
     
 class FriendEditSectionLocators(BaseSectionLocators):
-    ACTIVITY = "com.android.magical.Presentation.EditFriend.EditFriendActivity"
+    ACTIVITY = "com.android.magical.Presentation.ViewFriend.ViewFriendActivity"
         
     UPLOAD_PHOTO_BUTTON = (MobileBy.ID, 'edit_friend_upload_photo_button')
     FIRST_NAME_FIELD = (MobileBy.ID, 'edit_friend_first_name_edit_text')
@@ -189,13 +193,13 @@ class FriendSectionLocators(BaseSectionLocators):
 
 
 class EditItemSectionLocators(BaseSectionLocators):
-    ACTIVITY = ""
+    ACTIVITY = "com.android.magical.Presentation.EditItem.EditItemActivity"
 
     NAME_FIELD = (MobileBy.ID, 'edit_item_edit_item_name')
     PRICE_FIELD = (MobileBy.ID, 'edit_item_edit_item_price')
     QUANTITY_FIELD = (MobileBy.ID, 'edit_item_edit_item_qty')
     DESCRIPTION_FIELD = (MobileBy.ID, 'edit_item_edit_item_qty')
-    SAVE_BUTTON = (MobileBy.ID, 'edit_item_edit_item_desce')
+    SAVE_BUTTON = (MobileBy.ID, 'edit_item_edit_save')
 
 
 class ProfileSectionLocators(BaseSectionLocators):
@@ -208,3 +212,32 @@ class ProfileSectionLocators(BaseSectionLocators):
     WEBSITE_FIELD = (MobileBy.ID,"edit_profile_website_edit_text")
     BIO_FIELD = (MobileBy.ID,"edit_profile_bio_edit_text")
     SAVE_BUTTON = (MobileBy.ID,"menu_edit_profile_save")
+
+
+class UnsyncedItemsSectionLocators(BaseSectionLocators):
+    ACTIVITY = "com.android.magical.Presentation.NewItems.NewItemsActivity"
+
+    ITEM = (MobileBy.CLASS_NAME,"android.widget.RelativeLayout")
+    ITEM_NAME = (MobileBy.ID,"newItemsTextView")
+    UPLOAD_BUTTON = (MobileBy.ID,"newItemsUploadButton")
+
+class AdvancedSettingsSectionLocators(BaseSectionLocators):
+    ACTIVITY = "com.android.magical.Presentation.MagicalSettings.MagicalSettingsActivity"
+
+    CHANGE_PASSWORD_BUTTON = (MobileBy.ID,"settings_edit_password_button")
+
+
+class ChangePasswordSectionLocators(BaseSectionLocators):
+    ACTIVITY = "com.android.magical.Presentation.ChangePassword.ChangePasswordActivity"
+
+    ORIGINAL_PASSWORD_TEXT = (MobileBy.ID,"original_password_edit_text")
+    NEW_PASSWORD_TEXT = (MobileBy.ID,"password_edit_text")
+    NEW_PASSWORD_CONFIRM_TEXT = (MobileBy.ID,"confirm_password_edit_text")
+    SAVE_BUTTON = (MobileBy.ID,"change_password_save_button")
+
+
+class CalendarSectionLocators(BaseSectionLocators):
+    ACTIVITY = "com.android.magical.Presentation.WhenCalendar.WhenCalendarActivity"
+
+    #DAY = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("day")')
+    DAY =  (MobileBy.XPATH, '//android.widget.CheckedTextView[@index = "ind"]')
