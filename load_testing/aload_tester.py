@@ -2,6 +2,11 @@ import asyncio
 import sys
 import time
 import traceback
+import os
+
+
+sys.path.append(os.getcwd())
+
 
 from magical.items import Item
 from magical.users import User
@@ -26,13 +31,13 @@ async def start_session(user,i,arguments):
             await user.ahttp.addItem(Item())
             elapsed_add_item = time.time() - start_add_item
             str_out += ", add item:%.2f" % elapsed_add_item
-        user.ahttp.session.close()
+        await user.ahttp.session.close()
         print("user %i finished in %.2f [%s] "%(i, (elapsed_login + elapsed_create_acc),str_out))
         return elapsed_login + elapsed_create_acc
     except Exception as e:
         tb = traceback.format_exc()
         print ("user %s failed: %s"%(i,tb))
-        user.ahttp.session.close()
+        await user.ahttp.session.close()
         return 0
 
 async def main(arguments):

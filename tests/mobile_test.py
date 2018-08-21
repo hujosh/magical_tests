@@ -12,28 +12,7 @@ from magical.users import User
 from mobile_app.sections import *
 from mobile_app.base import PhoneNetwork
 
-
-host = 'http://localhost:4723/wd/hub'
-# Information about the phone; all tests use this dictionary...
-desired_caps = {}
-#desired_caps['deviceName'] = 'D1AGAS3770501528'
-#desired_caps['deviceName'] = 'emulator-5554'
-desired_caps['deviceName'] = 'SM-G9201'
-# Returns abs path relative to this file and not cwd
-desired_caps['app'] = os.path.abspath(r'apps\magical-dev-debug.apk')
-desired_caps['appPackage'] = 'magicalconnect.android.magical.dev'
-desired_caps['appActivity'] = 'com.android.magical.Presentation.SplashScreen.SplashScreenActivity'
-desired_caps['browserName'] = ""
-desired_caps['appiumVersion'] = "1.8.1"
-desired_caps['deviceOrientation'] = "portrait"
-desired_caps['platformName'] = "Android"
-desired_caps["unicodeKeyboard"] = True
-desired_caps["resetKeyboard"]= True
-desired_caps["automationName "]= 'UiAutomator2'
-#desired_caps["platformVersion"] = "7.1"
-desired_caps["platformVersion"] = "7.0"
-
-
+import settings
 
 def assertFriendNotPresent(friend, phone):
     horizontalFriendsListSection = HorizontalFriendsListSection(phone)
@@ -52,8 +31,13 @@ def assertFriendPresent(friend, phone):
     if not (verticalFriendsListSection.friendInList(friend)):
         raise AssertionError("'%s' should be in the vertical friends list, but it isn't." % friend.fullName)
 
+
+def assertSectionPresent(section):
+    assert section.sectionPresent(), "The app should be in the %s but isn't"%section.getSectionName()
+
+
 def goBackToMainSection(test, phone):
-    test.phone.start_activity(desired_caps['appPackage'], desired_caps['appActivity'])
+    test.phone.start_activity(settings.desired_caps['appPackage'], settings.desired_caps['appActivity'])
 
 
 def getLoggedinUser(pre_defined_user=None):
@@ -81,10 +65,11 @@ def clean(request):
 
 pytestmark = pytest.mark.usefixtures("clean")
 
+
 class TestLogin:
     @classmethod
     def setup_class(cls):
-        cls.phone = webdriver.Remote(host, desired_caps)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
 
     @classmethod
     def teardown_class(cls):
@@ -97,38 +82,56 @@ class TestLogin:
         self.loginSection = LoginSection(TestLogin.phone)
 
     def test_login_with_extantUser_using_email(self):
+        print(self.phone.page_source)
         self.loginSection.loginSuccessfully(User('extantUser'))
 
     def test_login_with_extantUser_using_username(self):
         self.loginSection.loginSuccessfully(User('extantUser'),withEmail=False)
 
+
     def test_login_with_emptyEmail(self):
         alert = self.loginSection.loginUnsuccessfully(User('emptyEmail'))
-        assert alert.title == "Username is empty."
+        if alert.isiOS:
+            print(alert.fullAlertText)
+            assert alert.fullAlertText == "Error logging in.\nusername is required"
+        else:
+            assert alert.title == "Username is empty."
         alert.pressOK()
         assert self.loginSection.sectionPresent()
 
     def test_login_with_emptyPassword(self):
         alert = self.loginSection.loginUnsuccessfully(User('emptyPassword'))
-        assert alert.title == "Password is empty."
+        if alert.isiOS:
+            assert alert.fullAlertText == "Error logging in.\npassword is required"
+        else:
+            assert alert.title == "Password is empty."
         alert.pressOK()
         assert self.loginSection.sectionPresent()
 
     def test_login_with_nonExistentUser(self):
         alert = self.loginSection.loginUnsuccessfully(User('nonExistentUser'))
-        assert alert.title == "Error logging in."
+        if alert.isiOS:
+            assert alert.fullAlertText == "Error logging in.\nIncorrect username or password - please try again."
+        else:
+            assert alert.title == "Error logging in."
         alert.pressOK()
         assert self.loginSection.sectionPresent()
 
     def test_login_with_longEmail(self):
         alert = self.loginSection.loginUnsuccessfully(User('longEmail'))
-        assert alert.title == "Error logging in."
+        if alert.isiOS:
+            assert alert.fullAlertText == "Error logging in.\nIncorrect username or password - please try again."
+        else:
+            assert alert.title == "Error logging in."
         alert.pressOK()
         assert self.loginSection.sectionPresent()
 
     def test_login_with_emptyEmailAndPassword(self):
         alert = self.loginSection.loginUnsuccessfully(User('emptyEmailAndPassword'))
-        assert alert.title == "Username is empty."
+        if alert.isiOS:
+            assert alert.fullAlertText == "Error logging in.\npassword is required"
+        else:
+            assert alert.title == "Password is empty."
         alert.pressOK()
         assert self.loginSection.sectionPresent()
 
@@ -136,7 +139,7 @@ class TestLogin:
 class TestSignup:
     @classmethod
     def setup_class(cls):
-        cls.phone = webdriver.Remote(host, desired_caps)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
 
     @classmethod
     def teardown_class(cls):
@@ -181,6 +184,7 @@ class TestSignup:
         alert.pressOK()
         mainSection = MainSection(TestSignup.phone)
 
+    
     def test_signup_with_emptyUsername(self):
         self.invalid_signup_first_page(User('emptyUsername'))
 
@@ -208,11 +212,28 @@ class TestSignup:
     def test_signup_with_emptyLastName(self):
         self.invalid_signup_second_page(User('emptyLastName'))
 
+    def test_signup_without_accepting_terms_and_conditions(self):
+        user = User()
+        alert = self.signupSection.signupSuccessfullyFirstPage(user)
+        alert.pressConfirm()
+        self.signupSection.enterFirstName(user)
+        self.signupSection.enterLastName(user)
+        self.signupSection.pressSignup()
+        alert = AlertSection(TestSignup.phone)
+        alert.title = "Terms and Conditions"
+        alert.message = "Please review our terms and privacy policy, and check the box"
+        alert.pressOK()
+        self.signupSection.checkTermsAndConditions()
+        self.signupSection.pressSignup()
+        alert = AlertSection(TestSignup.phone)
+        alert.pressOK()
+        assert MainSection().sectionPresent()
+
 
 class TestForgotPassword:
     @classmethod
     def setup_class(cls):
-        cls.phone = webdriver.Remote(host, desired_caps)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
 
     @classmethod
     def teardown_class(cls):
@@ -263,7 +284,7 @@ class TestAddItem:
 
     @classmethod
     def setup_class(cls):
-        cls.phone = webdriver.Remote(host, desired_caps)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
         cls.users = [User() for i in range(15)]
         cls.p = Pool(15)
         cls.it = TestAddItem.p.imap(cls.create_account, cls.users)
@@ -358,7 +379,7 @@ class TestAddItem:
 class TestLogout:
     @classmethod
     def setup_class(cls):
-        cls.phone = webdriver.Remote(host, desired_caps)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
 
     @classmethod
     def teardown_class(cls):
@@ -381,7 +402,7 @@ class TestLogout:
 class TestReview:
     @classmethod
     def setup_class(cls):
-        cls.phone = webdriver.Remote(host, desired_caps)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
         cls.user = User()
         cls.user.http.createAccount()
         cls.user.http.login()
@@ -435,11 +456,10 @@ class TestReview:
         # def test_delete_review(cls):
         #    pass
 
-
 class TestAddFriend:
     @classmethod
     def setup_class(cls):
-        cls.phone = webdriver.Remote(host, desired_caps)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
         cls.user = User()
         cls.user.http.createAccount()
         loginSection = LoginSection(cls.phone)
@@ -451,7 +471,7 @@ class TestAddFriend:
 
     def teardown_method(self):
         # go back to MainSection...
-        TestAddFriend.phone.start_activity(desired_caps['appPackage'],desired_caps['appActivity'])
+        TestAddFriend.phone.start_activity(settings.desired_caps['appPackage'], settings.desired_caps['appActivity'])
 
     def setup_method(self):
         try:
@@ -463,7 +483,7 @@ class TestAddFriend:
             raise
 
     @pytest.mark.parametrize("friend_type", [
-        "emptyFirstName",
+        "emptyName",
         "invalidEmail",
     ])
     def test_add_invalidFriend(self, friend_type):
@@ -515,6 +535,7 @@ class TestAddFriend:
         self.addFriendSection.pressBackArrow()
         assertFriendNotPresent(friend2, TestAddFriend.phone)
 
+
 class TestFriendEdit:
     @classmethod
     def create_account(cls, user):
@@ -526,7 +547,7 @@ class TestFriendEdit:
 
     @classmethod
     def setup_class(cls):
-        cls.phone = webdriver.Remote(host, desired_caps)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
         cls.users = [User() for i in range(15)]
         cls.p = Pool(15)
         cls.it = TestFriendEdit.p.imap(cls.create_account, cls.users)
@@ -552,15 +573,16 @@ class TestFriendEdit:
             self.teardown_method()
             raise
 
+    '''
     @pytest.mark.parametrize("invalid_name", [
         "",  # empty name
         "$", # invalid character
         ' ' #space
     ])
-    def test_invalid_first_name_change(self, invalid_name):
+    def test_invalid_name_change(self, invalid_name):
         old_name = self.friend.fullName
-        self.friend.setFirstName(invalid_name, shouldTrim = False)
-        self.friendProfile.enterFirstName(self.friend)
+        self.friend.fullName = invalid_name
+        self.friendProfile.enterName(self.friend)
         self.friendProfile.pressSave()
         assert self.friendProfile.sectionPresent()
         friendSection = self.friendProfile.pressBackArrow()
@@ -570,48 +592,24 @@ class TestFriendEdit:
     @pytest.mark.parametrize("valid_name", [
         'NEW'
     ])
-    def test_valid_first_name_change(self, valid_name):
+    def test_valid_name_change(self, valid_name):
         self.friend.setFirstName(valid_name)
-        self.friendProfile.enterFirstName(self.friend)
+        self.friendProfile.enterName(self.friend)
         self.friendProfile.pressSave()
         assert self.friendProfile.sectionPresent()
         friendSection = self.friendProfile.pressBackArrow()
         assert friendSection.friendName == self.friend.fullName
         friendSection.pressBackArrow()
+
         assertFriendPresent(self.friend)
 
-    @pytest.mark.parametrize("valid_name", [
-        'NEW'
-    ])
-    def test_valid_last_name_change(self, valid_name):
-        self.friend.setLastName(valid_name)
-        self.friendProfile.enterLastName(self.friend)
-        self.friendProfile.pressSave()
-        assert self.friendProfile.sectionPresent()
-        friendSection = self.friendProfile.pressBackArrow()
-        assert friendSection.friendName == self.friend.fullName
-        friendSection.pressBackArrow()
-        assertFriendPresent(self.friend)
-
-    @pytest.mark.parametrize("invalid_name", [
-        '$'
-    ])
-    def test_invalid_last_name_change(self, invalid_name):
-        old_name = self.friend.fullName
-        self.friend.setLastName(invalid_name)
-        self.friendProfile.enterLastName(self.friend)
-        self.friendProfile.pressSave()
-        assert self.friendProfile.sectionPresent()
-        friendSection = self.friendProfile.pressBackArrow()
-        # assert that the name wasn't changed
-        assert friendSection.friendName == old_name
-
+    '''
     def test_change_email_to_same_as_loggedin_users(self):
         old_email = self.friend.email
         self.friend.email = self.user.email
         self.friendProfile.enterEmailAddress(self.friend)
-        self.friendProfile.pressSave()
-        assert self.friendProfile.sectionPresent()
+        self.friendProfile = self.friendProfile.pressSaveUnsuccessful()
+        #assert self.friendProfile.emailField == old_email
         friendSection = self.friendProfile.pressBackArrow()
         friendProfile = friendSection.pressEditFriend()
         assert friendProfile.emailField == old_email
@@ -620,9 +618,7 @@ class TestFriendEdit:
         old_email = self.friend.email
         self.friend.email = ''
         self.friendProfile.enterEmailAddress(self.friend)
-        self.friendProfile.pressSave()
-        assert self.friendProfile.sectionPresent()
-        friendSection = self.friendProfile.pressBackArrow()
+        friendSection = self.friendProfile.pressSaveSuccessful()
         friendProfile = friendSection.pressEditFriend()
         assert friendProfile.emailField == self.friend.email
 
@@ -630,9 +626,7 @@ class TestFriendEdit:
         old_email = self.friend.email
         self.friend.email = 'a' + self.friend.email
         self.friendProfile.enterEmailAddress(self.friend)
-        self.friendProfile.pressSave()
-        assert self.friendProfile.sectionPresent()
-        friendSection = self.friendProfile.pressBackArrow()
+        friendSection = self.friendProfile.pressSaveSuccessful()
         friendProfile = friendSection.pressEditFriend()
         assert friendProfile.emailField == self.friend.email
 
@@ -643,8 +637,8 @@ class TestFriendEdit:
         old_email = self.friend.email
         self.friend.email = friend2.email
         self.friendProfile.enterEmailAddress(self.friend)
-        self.friendProfile.pressSave()
-        assert self.friendProfile.sectionPresent()
+        self.friendProfile = self.friendProfile.pressSaveUnsuccessful()
+        #assert self.friendProfile.emailField == old_email
         friendSection = self.friendProfile.pressBackArrow()
         friendProfile = friendSection.pressEditFriend()
         assert friendProfile.emailField == old_email
@@ -653,7 +647,7 @@ class TestFriendEdit:
 class TestDeleteFriend:
     @classmethod
     def setup_class(cls):
-        cls.phone = webdriver.Remote(host, desired_caps)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
 
     @classmethod
     def teardown_class(cls):
@@ -697,14 +691,12 @@ class TestEditItem():
         user.http.addItem(item)
         return user,item
 
-
     @classmethod
     def setup_class(cls):
-        cls.phone = webdriver.Remote(host, desired_caps)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
         cls.users = [User() for i in range(15)]
         cls.p = Pool(15)
         cls.it = TestEditItem.p.imap(cls.create_account, cls.users)
-
 
     @classmethod
     def teardown_class(cls):
@@ -749,11 +741,10 @@ class TestEditItem():
         assert item_page.itemName == old_name
 
 
-
 class TestProfile:
     @classmethod
     def setup_class(cls):
-        cls.phone = webdriver.Remote(host, desired_caps)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
 
     @classmethod
     def teardown_class(cls):
@@ -773,6 +764,7 @@ class TestProfile:
 
     def testProfileDataCorrect(self):
         '''Tests that the data in the profile upon logging in for the first time is correct'''
+        print(self.myProfile.driver.page_source)
         assert self.myProfile.username == self.user.username
         assert self.myProfile.firstName == self.user.firstName
         assert self.myProfile.lastName == self.user.lastName
@@ -793,7 +785,7 @@ class TestProfileEdit:
         cls.users = [User() for i in range(15)]
         cls.p = Pool(15)
         cls.it = TestProfileEdit.p.imap(cls.create_account, cls.users)
-        cls.phone = webdriver.Remote(host, desired_caps)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
 
     @classmethod
     def teardown_class(cls):
@@ -907,7 +899,7 @@ class TestLikeItem:
         cls.users = [User() for i in range(15)]
         cls.p = Pool(15)
         cls.it = TestLikeItem.p.imap(cls.create_account, cls.users)
-        cls.phone = webdriver.Remote(host, desired_caps)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
 
     @classmethod
     def teardown_class(cls):
@@ -954,7 +946,7 @@ class TestDeleteItem:
         cls.users = [User() for i in range(15)]
         cls.p = Pool(15)
         cls.it = TestDeleteItem.p.imap(cls.create_account, cls.users)
-        cls.phone = webdriver.Remote(host, desired_caps)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
 
     @classmethod
     def teardown_class(cls):
@@ -976,9 +968,11 @@ class TestDeleteItem:
         myPage = item_page.deleteItem()
         assert myPage.whatIWantList.itemInList({'name': self.item.itemName, 'by': self.user.internalName}) == False
 
-    '''
+
     def test_delete_friends_item(self):
-        friend = getLoggedinUser()
+        me = User("extantuser")
+        friend = User("davidGoddard")
+        friend.http.login()
         item = Item()
         friend.http.addItem(item)
         self.user.http.addFriend(friend)
@@ -989,7 +983,7 @@ class TestDeleteItem:
         item_page = friendSection.whatMyFriendWantsList.pressItem({'name': item.itemName, 'by': friend})
         with pytest.raises(ElementNotFound) as excinfo:
             item_page.pressHamburer() # Trying to press the hamburger should raise an exception...
-        '''
+
 
 class TestOfflineMode:
     @classmethod
@@ -997,7 +991,7 @@ class TestOfflineMode:
         cls.users = [User() for i in range(15)]
         cls.p = Pool(15)
         cls.it = TestOfflineMode.p.imap(cls.create_account, cls.users)
-        cls.phone = webdriver.Remote(host, desired_caps)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
         cls.phoneNetwork = PhoneNetwork()
 
     @classmethod
@@ -1087,10 +1081,11 @@ class TestRotation:
         return user
 
     def teardown_method(self):
+        TestRotation.phone.orientation = "PORTRAIT"
         TestRotation.phone.quit()
 
     def setup_method(self):
-        TestRotation.phone = webdriver.Remote(host, desired_caps)
+        TestRotation.phone = webdriver.Remote(settings.host, settings.desired_caps)
         self.user = TestRotation.it.next()
 
     def toggle_rotation(self):
@@ -1147,7 +1142,7 @@ class TestChangePassword():
         cls.users = [User() for i in range(15)]
         cls.p = Pool(15)
         cls.it = TestChangePassword.p.imap(cls.create_account, cls.users)
-        cls.phone = webdriver.Remote(host, desired_caps)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
 
     @classmethod
     def create_account(cls, user):
@@ -1227,13 +1222,13 @@ class TestChangePassword():
         self.user.password = old_password
         loginSection.loginSuccessfully(self.user, clear=True)
 
-
+'''
 class TestAddEvent():
     def setup_class(cls):
         cls.users = [User() for i in range(15)]
         cls.p = Pool(15)
         cls.it = TestAddEvent.p.imap(cls.create_account, cls.users)
-        cls.phone = webdriver.Remote(host, desired_caps)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
 
     @classmethod
     def create_account(cls, user):
@@ -1251,3 +1246,4 @@ class TestAddEvent():
 
     def test_add_event(self):
         self.calendarSection.pressDay(23)
+'''

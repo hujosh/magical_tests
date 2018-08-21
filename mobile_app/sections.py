@@ -1,7 +1,7 @@
 import copy
 import time
-import re
-
+import sys
+sys.path.append("..tests")
 
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -9,8 +9,13 @@ from mobile_app.base import ElementNotFound
 from mobile_app.base import FriendNotFound
 from mobile_app.base import ItemNotFound
 from mobile_app.base import Section
-from mobile_app.locators import *
 
+import settings
+
+if settings.desired_caps['platformName'] == 'Android':
+    from mobile_app.locators import *
+else:
+    from mobile_app.locators_ios import *
 
 class AlertSection(Section):
     def __init__(self, driver, **kwargs):
@@ -19,21 +24,29 @@ class AlertSection(Section):
         self.timeout = 1
         self.message = self.getMessage()
         self.title   = self.getTitle()
+        # for iOS
+        self.fullAlertText = self.title
         
     def isSectionLoaded(self):
         self.findElement(* self.locator.ALERT_BOX)
         
     def getMessage(self):
-        try:
-            return self.findElement(*self.locator.MESSAGE).text
-        except:
-            return None
+        if self.isiOS:
+            return self.driver.switch_to.alert.text
+        else:
+            try:
+                return self.findElement(*self.locator.MESSAGE).text
+            except:
+                return None
         
     def getTitle(self):
-        try:
-            return self.findElement(*self.locator.TITLE).text
-        except:
-            return None
+        if self.isiOS:
+            return self.driver.switch_to.alert.text
+        else:
+            try:
+                return self.findElement(*self.locator.TITLE).text
+            except:
+                return None
         
     def pressCancel(self):
         self.findElement(*self.locator.CANCEL_BUTTON).click()
@@ -44,6 +57,7 @@ class AlertSection(Section):
         self._PutAppInBackground()
 
     def pressSubmit(self):
+
         self.findElement(*self.locator.SUBMIT_BUTTON).click()
         self._PutAppInBackground()
     
@@ -52,7 +66,10 @@ class AlertSection(Section):
         self._PutAppInBackground()
 
     def enterInput(self, input):
-        self.enterText(self.findElement(*self.locator.INPUT_FIELD), input)
+        if self.isiOS:
+            self.driver.switch_to.alert.send_keys('e')
+        else:
+            self.enterText(self.findElement(*self.locator.INPUT_FIELD), input)
 
     def pressYes(self):
         self.findElement(*self.locator.YES_BUTTON).click()
@@ -62,12 +79,20 @@ class AlertSection(Section):
         self.findElement(*self.locator.NO_BUTTON).click()
         self._PutAppInBackground()
         
-        
+
+class ForgotPasswordSectioniOS(AlertSection):
+    def __init__(self, driver,**kwargs):
+        self.locator = ForgotPasswordSectioniOSLocators
+        super().__init__(driver, **kwargs)
+
+
 class LoginSection(Section):
     def __init__(self, driver, **kwargs):
         self.locator = LoginSectionLocators
         self.activity = self.locator.ACTIVITY
         super().__init__(driver, **kwargs)
+        if self.isiOS:
+            self.driver.switch_to.alert.accept()
         
     def enterEmail(self, user, clear = False):
         self.enterText(self.findElement(* self.locator.EMAIL_FIELD), user.email, clear)
@@ -80,7 +105,10 @@ class LoginSection(Section):
         
     def pressForgotPassword(self):
         self.findElement(* self.locator.FORGOT_PASSWORD_BUTTON).click()
-        return AlertSection(self.driver)
+        if self.isiOS:
+            return ForgotPasswordSectioniOS(self.driver)
+        else:
+            return AlertSection(self.driver)
 
     def pressJoinUs(self):
         self.findElement(* self.locator.JOIN_US_BUTTON).click()
@@ -144,6 +172,9 @@ class SignupSection(Section):
     def enterLastName(self, user):
         self.enterText(self.findElement(* self.locator.LAST_NAME_FIELD), user.lastName)    
 
+    def checkTermsAndConditions(self):
+        self.findElement(*self.locator.TERMS_AND_CONDITIONS_CHECKBOX).click()
+
     def signupSuccessfullyFirstPage(self, user):
         self.enterUsername(user)
         self.enterEmail(user)
@@ -155,6 +186,7 @@ class SignupSection(Section):
     def signupSuccessfullySecondPage(self, user):
         self.enterFirstName(user)
         self.enterLastName(user)
+        self.checkTermsAndConditions()
         self.pressSignup()
         return AlertSection(self.driver, timeout = 15)
         
@@ -482,7 +514,7 @@ class SettingsSection(Section):
         self.activity =  self.locator.ACTIVITY
         super().__init__(driver, **kwargs)    
         
-    def pressLogoutButton(self): 
+    def pressLogoutButton(self):
         self.findElement(*self.locator.LOG_OUT_BUTTON).click()
 
     def pressUnsyncedItemsButton(self):
@@ -497,7 +529,8 @@ class SettingsSection(Section):
         self.pressLogoutButton()
         alert = AlertSection(self.driver)
         alert.pressYes()
-        return LoginSection(self.driver)
+        return LoginSection(self.driver, timeout =10)
+
 
 class ReviewSection(Section):
     def __init__(self, driver, **kwargs):
@@ -546,12 +579,9 @@ class AddFriendSection(Section):
         self.activity =  self.locator.ACTIVITY
         super().__init__(driver, **kwargs)
         
-    def enterFirstName(self, friend):
-        self.enterText(self.findElement(*self.locator.FIRST_NAME_FIELD), friend.firstName)
+    def enterName(self, friend):
+        self.enterText(self.findElement(*self.locator.NAME_FIELD), friend.fullName)
 
-    def enterLastName(self, friend):
-        self.enterText(self.findElement(*self.locator.LAST_NAME_FIELD), friend.lastName)
-        
     def enterEmailAddress(self, friend):
         self.enterText(self.findElement(*self.locator.EMAIL_ADDRESS_FIELD), friend.email)
         
@@ -559,10 +589,8 @@ class AddFriendSection(Section):
         self.findElement(*self.locator.SAVE_BUTTON).click()
 
     def _addFriend(self, friend):
-        if friend.firstName:
-            self.enterFirstName(friend)
-        if friend.lastName:
-            self.enterLastName(friend)
+        if friend.firstName or friend.lastName:
+            self.enterName(friend)
         if friend.email:
             self.enterEmailAddress(friend)
         self.pressSave()
@@ -588,11 +616,8 @@ class FriendEditSection(Section):
     def pressUploadPhoto(self):
         self.findElement(*self.locator.UPLOAD_PHOTO_BUTTON).click()
 
-    def enterFirstName(self, friend):
-        self.enterText(self.findElement(*self.locator.FIRST_NAME_FIELD).clear(), friend.firstName)
-        
-    def enterLastName(self, friend):
-        self.enterText(self.findElement(*self.locator.LAST_NAME_FIELD).clear(), friend.lastName)
+    def enterName(self, friend):
+        self.enterText(self.findElement(*self.locator.NAME_FIELD).clear(), friend.fullName)
     
     def enterBirthday(self, friend):
         self.enterText(self.findElement(*self.locator.BIRTHDAY_FIELD).clear(), friend.birthday)
@@ -606,22 +631,29 @@ class FriendEditSection(Section):
     def pressDelete(self):
         self.findElement(*self.locator.DELETE_BUTTON).click()
         return AlertSection(self.driver)
-        
-    def pressSave(self):
+
+    def _pressSave(self):
         self.findElement(*self.locator.SAVE_BUTTON).click()
-      
+
+    def pressSaveSuccessful(self):
+        self._pressSave()
+        return FriendSection(self.driver)
+
+    def pressSaveUnsuccessful(self):
+         self._pressSave()
+         return self
+
     def deleteFriendSuccessfully(self):
-        self.pressHamburger()
         alert = self.pressDelete()
         assert alert.title == "Do you want to delete this friend?"
         alert.pressYes()
         return MainSection(self.driver)
-    
+
     def deleteFriendUnsuccessfully(self):
-        self.pressHamburger()
         alert = self.pressDelete()
         assert alert.title == "Do you want to delete this friend?"
         alert.pressNo()
+        return self
         
     def pressBackArrow(self):
         super().pressBackArrow()
@@ -731,10 +763,6 @@ class ProfileSection(Section):
         self.locator = ProfileSectionLocators
         self.activity = self.locator.ACTIVITY
         super().__init__(driver, **kwargs)
-        try:
-            self.findElement(*self.locator.USERNAME_FIELD)
-        except:
-            self.driver.back()
 
     def enterUsername(self, user):
         self.enterText(self.findElement(*self.locator.USERNAME_FIELD).clear(), user.username)
@@ -760,6 +788,7 @@ class ProfileSection(Section):
 
     @property
     def username(self):
+        print(self.driver.page_source)
         return self.findElement(*self.locator.USERNAME_FIELD).text
 
     @property
@@ -881,11 +910,11 @@ class CalendarSection(Section):
         return mainSection.pressToggleCalendarButton()
 
     def pressDay(self, day):
-        day = day +6
-        locator =  self.locator.DAY
-        st = locator[1]
-        sa = re.sub('ind',str(day), st)
-        new_locator= (locator[0],sa)
-        self.findElement(new_locator).click()
+        locator_string = self.locator.DAY[1]
+        locator_strat = self.locator.DAY[0]
+        locator_string = locator_string.replace("day",str(day))
+        new_locator = (locator_strat,locator_string)
+        self.findElement(*new_locator).click()
 
+        #self.findElement(*self.locator.DAY).click()
 

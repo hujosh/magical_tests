@@ -51,8 +51,9 @@ class SignupSectionLocators(BaseSectionLocators):
     FIRST_NAME_FIELD       = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("First Name")')
     LAST_NAME_FIELD        = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Last Name")')
     SIGNUP_BUTTON          = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("SIGN UP")')
-    NEXT_BUTTON            = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Next")')                      
-    
+    NEXT_BUTTON            = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Next")')
+    TERMS_AND_CONDITIONS_CHECKBOX= (MobileBy.ID, 'createAccountInformationCheckBox')
+
     
 class MainSectionLocators(BaseSectionLocators):
     ACTIVITY = 'com.android.magical.Presentation.MainActivity.MainActivity'
@@ -135,7 +136,8 @@ class SettingSectionLocators(BaseSectionLocators):
     LOG_OUT_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Log Out")')
     UNSYNCED_ITEMS_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Unsynced Items")')
     ADVANCED_SETTINGS_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Settings")')
-    
+
+
 class ReviewSectionLocators(BaseSectionLocators):
     ACTIVITY = 'com.android.magical.Presentation.AddReview.AddReviewActivity'
     
@@ -147,48 +149,48 @@ class ReviewSectionLocators(BaseSectionLocators):
     THREE_STAR_BUTTON = (MobileBy.ID, 'add_review_star3')
     FOUR_STAR_BUTTON = (MobileBy.ID, 'add_review_star4')
     FIVE_STAR_BUTTON = (MobileBy.ID, 'add_review_star5')
-    
-    
-class AddFriendSectionLocators(BaseSectionLocators):
-    ACTIVITY = "com.android.magical.Presentation.AddFriend.AddFriendActivity"
 
+
+class FriendEditSectionLocators(BaseSectionLocators):
+    ACTIVITY = "com.android.magical.Presentation.EditFriend.EditFriendActivity"
+
+    UPLOAD_PHOTO_BUTTON = (MobileBy.ID, 'edit_friend_upload_photo_button')
+    EMAIL_ADDRESS_FIELD = (MobileBy.ID, 'edit_friend_email_edit_text')
+    BIRTHDAY_FIELD = (MobileBy.ID, 'edit_friend_birthday_edit_text')
+    DELETE_BUTTON = (MobileBy.ID, 'edit_friend_delete_button')
+    SAVE_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("save")')
+    NAME_FIELD = (MobileBy.ID, 'edit_friend_first_and_last_name_edit_text')
+
+
+class AddFriendSectionLocators(FriendEditSectionLocators):
+    #ACTIVITY = "com.android.magical.Presentation.EditFriend.EditFriendActivity"
+
+    '''
     FIRST_NAME_FIELD = (MobileBy.ID, 'add_friend_first_name_edit_text')
     LAST_NAME_FIELD = (MobileBy.ID, 'add_friend_last_name_edit_text')
     EMAIL_ADDRESS_FIELD = (MobileBy.ID, 'add_friend_email_edit_text')
     SAVE_BUTTON = (MobileBy.ID, 'menu_add_friend_save')
     BACK_ARROW_BUTTON = (MobileBy.XPATH, '//android.widget.ImageButton[@index = "0"]')
-    
+    '''
     
 class VerticalFriendsListSectionLocators(BaseSectionLocators):
     ACTIVITY = "com.android.magical.Presentation.FriendList.FriendListActivity"
     
     FRIEND = (MobileBy.ID, 'friendListRelativeLayoutBaseView')
     FRIEND_NAME_TEXT = (MobileBy.ID, 'friendListTextView')
-    
-    
-class FriendEditSectionLocators(BaseSectionLocators):
-    ACTIVITY = "com.android.magical.Presentation.ViewFriend.ViewFriendActivity"
-        
-    UPLOAD_PHOTO_BUTTON = (MobileBy.ID, 'edit_friend_upload_photo_button')
-    FIRST_NAME_FIELD = (MobileBy.ID, 'edit_friend_first_name_edit_text')
-    LAST_NAME_FIELD = (MobileBy.ID, 'edit_friend_last_name_edit_text')
-    EMAIL_ADDRESS_FIELD = (MobileBy.ID, 'edit_friend_email_edit_text')
-    BIRTHDAY_FIELD = (MobileBy.ID, 'edit_friend_birthday_edit_text')
-    DELETE_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Delete")')
-    SAVE_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("SAVE")')
-    
-    
+
+
 class LoggedinUserSectionLocators(BaseSectionLocators):
     ACTIVITY = "com.android.magical.Presentation.ViewFriend.ViewFriendActivity"
 
-    EDIT_PROFILE_BUTTON = (MobileBy.ID, 'menu_view_friend_edit')
+    EDIT_PROFILE_BUTTON = (MobileBy.ID, 'view_friend_toolbar_imageview')
     USERNAME_TEXT = (MobileBy.ID, 'view_friend_toolbar_username_tagline')
 
 
 class FriendSectionLocators(BaseSectionLocators):
     ACTIVITY = "com.android.magical.Presentation.ViewFriend.ViewFriendActivity"
     
-    EDIT_FRIEND_BUTTON = (MobileBy.ID, 'menu_view_friend_edit')
+    EDIT_FRIEND_BUTTON = (MobileBy.ID, 'view_friend_toolbar_imageview')
     FRIEND_NAME_TEXT = (MobileBy.ID, 'view_friend_toolbar_title_text')
 
 
@@ -238,6 +240,7 @@ class ChangePasswordSectionLocators(BaseSectionLocators):
 
 class CalendarSectionLocators(BaseSectionLocators):
     ACTIVITY = "com.android.magical.Presentation.WhenCalendar.WhenCalendarActivity"
+    DAY = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("day")')
+    #DAY = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("23")')
 
-    #DAY = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("day")')
-    DAY =  (MobileBy.XPATH, '//android.widget.CheckedTextView[@index = "ind"]')
+    #DAY =  (MobileBy.XPATH, '//android.widget.CheckedTextView[@index = "ind"]')

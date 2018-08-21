@@ -12,7 +12,7 @@ class AHTTP:
         self.loggedIn = False
 
     async def createAccount(self):
-        await self._startSession()
+        #await self._startSession()
         await self._autoLogin()
         url = self.url+'/service/users/signup'
         data = {}
@@ -34,8 +34,11 @@ class AHTTP:
         data['mode'] = '1'
         try:
             response_headers = await self.session.post(url, headers = self.headers, data = data)
-            response_json = await response_headers.json(content_type='text/html')
-            self._checkResponseForError(response_json)
+
+            try:
+                response_json = await response_headers.json(content_type='text/html')
+            except:
+                raise RuntimeError("Request failed with error code: %s" % response_headers.status)
         except:
             raise
         return response_json
@@ -134,7 +137,12 @@ class AHTTP:
     '''
     async def _autoLogin(self):
         url = self.url+'/service/users/autologin'
+        self.cookies = {}
+        self.cookies['magicaltourstop'] = '1'
+        self.cookies['magicalStopTour'] = '1'
+        self.session = aiohttp.ClientSession(cookies = self.cookies)
         data = {'csrf_token' : ''}
+
         try:
             response_headers = await self.session.post(url, headers = self.headers, data = data)
             response_json = await response_headers.json(content_type='text/html')
@@ -173,5 +181,8 @@ class AHTTP:
         self.headers['X-Requested-With'] = 'XMLHttpRequest'
         
     def _checkResponseForError(self,response):
-        if response['status'] != 1:
-            raise RuntimeError("%s"%response)
+        try:
+            if response['status'] != 1:
+                raise RuntimeError("%s"%response)
+        except:
+            raise RuntimeError(response)

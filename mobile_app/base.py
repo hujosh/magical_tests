@@ -5,8 +5,12 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from mobile_app.locators import *
+import settings
 
+if settings.desired_caps['platformName'] == 'Android':
+    from mobile_app.locators import *
+else:
+    from mobile_app.locators_ios import *
 
 class SectionNotLoaded(Exception):
     pass
@@ -28,21 +32,28 @@ class Section(object):
         try:
             self.isSectionLoaded()
         except TimeoutException:
-            raise SectionNotLoaded('"%s" failed to load; waited %s seconds'%(self.__class__.__name__, self.timeout))
-           
+            current_activity = self.driver.current_activity
+            raise SectionNotLoaded('"%s" failed to load; waited %s seconds: current activity:%s'%(self.__class__.__name__, self.timeout,current_activity))
+
+    def getSectionName(self):
+        return self.__class__.__name__
+
     def isSectionLoaded(self):
         # We don't consider a section to be loaded if the throbber is still present.
         self.waitForThrobberToDisappear()
-        activity_loaded = self.driver.wait_activity(self.activity, self.timeout)
-        if not(activity_loaded):
-            raise TimeoutException
+        if settings.desired_caps['platformName'] == 'Android':
+            activity_loaded = self.driver.wait_activity(self.activity, self.timeout)
+            if not(activity_loaded):
+                raise TimeoutException
+        else:
+            time.sleep(5)
             
     def sectionPresent(self):
         try:
             self.isSectionLoaded()
             return True
         except:
-            return False
+            raise AssertionError('"%s" failed to load; waited %s seconds'%(self.__class__.__name__, self.timeout))
          
     def findElement(self, *locator, expectedCondition = EC.visibility_of_element_located):
         return self.findElementWait(locator, expectedCondition)
@@ -101,7 +112,15 @@ class Section(object):
         except:
             # This doesn't matter...
             pass
-     
+
+
+    @property
+    def isiOS(self):
+        return settings.desired_caps['platformName'] == 'iOS'
+
+    def isAndroid(self):
+        return settings.desired_caps['platformName'] == 'Android'
+
     def _setLoggedinUser(self, user):
         Section.loggedinUser = user
             
@@ -110,9 +129,15 @@ class Section(object):
      
     def _PutAppInBackground(self, background_time =0.5):
         # This is a workaround to a bug
+        #time.sleep(1)
+        #self.driver.background_app(background_time)
+        pass
+
+    def PutAppInBackground(self, background_time=0.5):
+        # This is a workaround to a bug
         time.sleep(1)
         self.driver.background_app(background_time)
-        
+
     def assertToastTextEquals(self, expected_toast_text):
         toast_text = self.toastText
         if toast_text != expected_toast_text:
@@ -149,10 +174,10 @@ class PhoneNetwork:
         pass
 
     def _set_wifi(self, status):
-        subprocess.run("adb shell am broadcast -a io.appium.settings.wifi --es setstatus %s" % status)
+        subprocess.run("adb shell am broadcast -a io.appium.settings.wifi --es setstatus %s" % status, shell=True)
 
     def _set_data(selfself, status):
-        subprocess.run("adb shell svc data %s" % status)
+        subprocess.run("adb shell svc data %s" % status, shell=True)
 
     def set_network_connection(self, status):
         self._set_wifi(status)

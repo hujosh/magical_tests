@@ -1,0 +1,7 @@
+#!/bin/bash
+
+rm /Users/magadmin/PycharmProjects/magical_tests/report.html
+cp "/Users/Shared/Jenkins/Home/workspace/Android Tests/Magical Android App/magical 1.1/magical/build/outputs/apk/dev/debug/magical-dev-debug.apk" "/Users/magadmin/PycharmProjects/magical_tests/apps/"
+cd "/Users/magadmin/PycharmProjects/magical_tests/"
+/usr/local/bin/pytest --html=report.html --self-contained-html -v
+/usr/local/bin/python3 upload_results_to_slack.py

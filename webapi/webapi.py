@@ -9,15 +9,17 @@ class HTTP:
         self.domain = domain
         self.site = site
         self.url = "https://%s.%s"%(self.site, self.domain)
-        self.cookies = {}
-        self.cookies['magicaltourstop'] = '1'
-        self.cookies['magicalStopTour'] = '1'
+        self.csrf_token = None
+        self.magical_id = None
+        self.session = requests.Session()
+        self.session.cookies['magicaltourstop'] = "1"
+        self.session.cookies['magicalStopTour'] = "1"
         self._initialiseRequestHeaders()
         # Whether or not we are logged in
         self.loggedIn = False
 
     def createAccount(self):
-        self._startSession()
+        #self._reportStatistics()
         self._autoLogin()
         url = self.url+'/service/users/signup'
         data = {}
@@ -38,16 +40,15 @@ class HTTP:
         #mode = 1 allows us to create an account without having to activate it via email.
         data['mode'] = '1'
         try:
-            response = requests.post(url, headers = self.headers, data = data, cookies = self.cookies)
+            response = self.session.post(url, headers = self.headers, data = data)
             self._checkResponseForError(response)  
         except:
             raise
         return response.json()
         
     def login(self):
-        self.cookies = {}
-        self._startSession()
-        self._autoLogin()
+        if self.csrf_token == None:
+            self._autoLogin()
         url = self.url+'/service/users/login'
         data = {}
         data ['username'] = self.user.username
@@ -56,7 +57,7 @@ class HTTP:
         data['csrf_token']      = self.csrf_token
         data['remember_me'] = '1'
         try:
-            response = requests.post(url, headers = self.headers, data = data, cookies = self.cookies)
+            response = self.session.post(url, headers = self.headers, data = data)
             self._checkResponseForError(response)
             self.loggedIn = True
         except:
@@ -87,7 +88,7 @@ class HTTP:
         data['original_item_id'] = guid
         data['privacy'] = item.privacy
         try:
-            response = requests.post(url, headers = headers, data = data, cookies = self.cookies)
+            response = self.session.post(url, headers = headers, data = data)
             self._checkResponseForError(response)  
         except:
             raise
@@ -107,10 +108,10 @@ class HTTP:
         data['first_name'] = friend.firstName
         data['last_name'] = friend.lastName
         data['email'] = friend.email
-        data['invite'] = '0'
+        data['invite'] = '1'
         data['who_id'] = self._getGuid()
         try:
-            response = requests.post(url, headers = headers, data = data, cookies = self.cookies)
+            response = self.session.post(url, headers = headers, data = data)
             self._checkResponseForError(response)  
         except:
             raise
@@ -119,9 +120,11 @@ class HTTP:
         
     def _getGuid(self):
         url = self.url+'/service/tools/getguid'
-        data = {'csrf_token' : self.csrf_token}
+        data = {}
+        if self.csrf_token is not None:
+            data['csrf_token'] = self.csrf_token
         try:
-            response = requests.post(url, headers = self.headers, data = data, cookies = self.cookies)
+            response = self.session.post(url, headers = self.headers, data = data)
             self._checkResponseForError(response)
         except:
             raise  
@@ -129,9 +132,11 @@ class HTTP:
         
     def _getGuids(self):
         url = self.url+'/service/tools/getguid'
-        data = {'csrf_token' : self.csrf_token}
+        data = {}
+        if self.csrf_token is not None:
+            data['csrf_token'] = self.csrf_token
         try:
-            response = requests.post(url, headers = self.headers, data = data, cookies = self.cookies)
+            response = self.session.post(url, headers = self.headers, data = data)
             self._checkResponseForError(response)  
         except:
             raise
@@ -141,22 +146,23 @@ class HTTP:
         url = self.url+'/service/users/autologin'
         data = {'csrf_token' : ''}
         try:
-            response = requests.post(url, headers = self.headers, data = data, cookies = self.cookies)
+            response = self.session.post(url, headers = self.headers, data = data)
         except:
             raise
-        self.csrf_token = response.cookies['csrf_token'] 
-        self.cookies['csrf_token'] = self.csrf_token
+        self.csrf_token = self.session.cookies['csrf_token']
+        self.magical_id = self.session.cookies['magical']
         return response.json() 
         
-    def _startSession(self):
-        url = self.url+'/service/users/startsession'
-        data = {'csrf_token' : ''}
+    def _reportStatistics(self):
+        url = self.url+'/service/reports/statistics'
+        data = {'csrf_token': ''}
         try:
-            response = requests.post(url, headers = self.headers, data = data, cookies = self.cookies)
+            response = self.session.post(url, headers = self.headers, data = data)
             self._checkResponseForError(response)  
         except:
             raise
-        self.cookies['magical'] = response.cookies['magical']
+        self.csrf_token = self.session.cookies['csrf_token']
+        self.magical_id = self.session.cookies['magical']
         return response.json()         
         
     def _initialiseRequestHeaders(self):
@@ -173,5 +179,7 @@ class HTTP:
         self.headers['X-Requested-With'] = 'XMLHttpRequest'
         
     def _checkResponseForError(self,response):
-        if response.json()['status'] != 1:
-            raise RuntimeError("The response does not have a status of 1: %s"%response.json())
+        if response.status_code != 200:
+            raise RuntimeError("Server returned with a status of 502:%s" % response)
+        elif response.json()['status'] != 1:
+            raise RuntimeError("The response does not have a status of 1: %s" % response.json())

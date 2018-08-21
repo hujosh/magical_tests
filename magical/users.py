@@ -121,7 +121,9 @@ users = [
     {"name": "emptyLastNameEmptyEmail", "lastName": "", "email":""},
     {"name": "random"},
     {"name":"funnyCharInFirstName", "firstName" : "Pökémön"},
-    {"name": "funnyCharInLastName", "lastName": "Pökémön"}
+    {"name": "funnyCharInLastName", "lastName": "Pökémön"},
+    {"name": "emptyName", "lastName": "", "firstName":""},
+    {"name": "davidGoddard", "firstName" : "David", "lastName": "Goddard"}, #may need to recreate this user if the account gets deleted
 ]
 
 def get_user(name):
