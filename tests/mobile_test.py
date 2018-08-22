@@ -1066,8 +1066,7 @@ class TestOfflineMode:
         pass
     '''
 
-
-
+@pytest.mark.skip(reason="rotation has been disabled in the Android app.")
 class TestRotation:
     @classmethod
     def setup_class(cls):
@@ -1158,6 +1157,7 @@ class TestChangePassword():
         mainSection = loginSection.loginSuccessfully(self.user)
         self.changePasswordSection = ChangePasswordSection.goTo(TestChangePassword.phone)
 
+
     def test_change_password_withNewPasswordNotTheSame(self):
         new_password = "abc123"
         different_new_password = new_password +"a"
@@ -1188,9 +1188,9 @@ class TestChangePassword():
         loginSection = settingsSection.logOut()
         old_password = self.user.password
         self.user.password = incorrect_original_password
-        self.user.password = old_password
         alert = loginSection.loginUnsuccessfully(self.user)  # Password is wrong
         alert.pressOK()
+        self.user.password = old_password
         loginSection.loginSuccessfully(self.user, clear=True)
 
     def test_change_password_with_ValidInput(self):

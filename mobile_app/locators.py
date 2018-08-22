@@ -66,6 +66,7 @@ class MainSectionLocators(BaseSectionLocators):
     SETTINGS_BUTTON             = (MobileBy.XPATH, '//android.view.ViewGroup/android.widget.ImageButton')
     ADD_FRIEND_BUTTON           = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Add Friend")')
     SHOW_FRIENDS_LIST_BUTTON    = (MobileBy.ID, 'bottom_bar_friends')
+    QUICK_ADD_FRIENDS_BUTTON     = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Quick Friends")')
 
     
 class ItemListSectionLocators(BaseSectionLocators):
@@ -223,13 +224,17 @@ class UnsyncedItemsSectionLocators(BaseSectionLocators):
     ITEM_NAME = (MobileBy.ID,"newItemsTextView")
     UPLOAD_BUTTON = (MobileBy.ID,"newItemsUploadButton")
 
+
 class AdvancedSettingsSectionLocators(BaseSectionLocators):
     ACTIVITY = "com.android.magical.Presentation.MagicalSettings.MagicalSettingsActivity"
 
     CHANGE_PASSWORD_BUTTON = (MobileBy.ID,"settings_edit_password_button")
+    PROFILE_TAB = (MobileBy.XPATH, '//android.widget.HorizontalScrollView/android.widget.LinearLayout/*[1]')
+    ACCOUNT_TAB = (MobileBy.XPATH, '//android.widget.HorizontalScrollView/android.widget.LinearLayout/*[2]')
+    NOTIFICATIONS_TAB = (MobileBy.XPATH, '//android.widget.HorizontalScrollView/android.widget.LinearLayout/*[3')
 
 
-class ChangePasswordSectionLocators(BaseSectionLocators):
+class ChangePasswordSectionLocators(AdvancedSettingsSectionLocators):
     ACTIVITY = "com.android.magical.Presentation.ChangePassword.ChangePasswordActivity"
 
     ORIGINAL_PASSWORD_TEXT = (MobileBy.ID,"original_password_edit_text")
@@ -244,3 +249,9 @@ class CalendarSectionLocators(BaseSectionLocators):
     #DAY = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("23")')
 
     #DAY =  (MobileBy.XPATH, '//android.widget.CheckedTextView[@index = "ind"]')
+
+
+class QuickAddFriendsSectionLocators(BaseSectionLocators):
+    ACTIVITY = "com.android.magical.Presentation.WhenCalendar.WhenCalendarActivity"
+
+

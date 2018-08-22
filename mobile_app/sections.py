@@ -871,6 +871,15 @@ class AdvancedSettingsSection(Section):
         super().pressBackArrow()
         return SettingsSection(self.driver)
 
+    def pressAccountTab(self):
+        self.findElement(*self.locator.ACCOUNT_TAB).click()
+
+    def pressProfileTab(self):
+        self.findElement(*self.locator.PROFILE_TAB).click()
+
+    def pressNotificationTab(self):
+        self.findElement(*self.locator.NOTIFICATIONS_TAB).click()
+
 
 class ChangePasswordSection(Section):
     def __init__(self, driver, **kwargs):
@@ -892,7 +901,9 @@ class ChangePasswordSection(Section):
 
     @staticmethod
     def goTo(driver):
-        return AdvancedSettingsSection.goTo(driver).pressChangePasswordButton()
+        advancedSettignsSection = AdvancedSettingsSection.goTo(driver)
+        advancedSettignsSection.pressAccountTab()
+        return advancedSettignsSection.pressChangePasswordButton()
 
     def pressBackArrow(self):
         super().pressBackArrow()
