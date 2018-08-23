@@ -254,4 +254,8 @@ class CalendarSectionLocators(BaseSectionLocators):
 class QuickAddFriendsSectionLocators(BaseSectionLocators):
     ACTIVITY = "com.android.magical.Presentation.WhenCalendar.WhenCalendarActivity"
 
+    ADD_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("add")')
+    NAME_FIELD = (MobileBy.ID, 'quick_friend_code_name_edit_text')
+    ADD_ANOTHER_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("add another")')
+
 

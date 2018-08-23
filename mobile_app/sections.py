@@ -221,7 +221,11 @@ class MainSection(Section):
         The main section of the app has the big item list that shows everything your friends want.
         '''
         return ItemListSection(self.driver)
-        
+
+    def pressQuickAddFriends(self):
+        self.findElement(*self.locator.QUICK_ADD_FRIENDS_BUTTON).click()
+        return QuickAddFriendsSection(self.driver)
+
     def pressAddItem(self):
         self.findElement(* self.locator.ADD_ITEM_BUTTON).click()
         return AddItemSection(self.driver, timeout = self.timeout)
@@ -928,4 +932,17 @@ class CalendarSection(Section):
         self.findElement(*new_locator).click()
 
         #self.findElement(*self.locator.DAY).click()
+
+class QuickAddFriendsSection(Section):
+    def __init__(self, driver, **kwargs):
+        self.locator = QuickAddFriendsSectionLocators
+        self.activity = self.locator.ACTIVITY
+        super().__init__(driver, **kwargs)
+
+    @staticmethod
+    def goTo(self):
+        mainSection = MainSection(self.driver)
+        mainSection.pressPlus()
+        return mainSection.pressQuickAddFriends()
+
 
