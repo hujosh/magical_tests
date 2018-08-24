@@ -1247,3 +1247,34 @@ class TestAddEvent():
     def test_add_event(self):
         self.calendarSection.pressDay(23)
 '''
+
+class TestQuickAddFriends():
+    def setup_class(cls):
+        cls.users = [User() for i in range(15)]
+        cls.p = Pool(15)
+        cls.it = TestQuickAddFriends.p.imap(cls.create_account, cls.users)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
+
+    @classmethod
+    def create_account(cls, user):
+        user.http.createAccount()
+        return user
+
+    def teardown_method(self):
+        TestQuickAddFriends.phone.reset()
+
+    def setup_method(self):
+        self.user = TestQuickAddFriends.it.next()
+        loginSection = LoginSection(TestChangePassword.phone)
+        mainSection = loginSection.loginSuccessfully(self.user)
+        self.quickAddFriendSection = QuickAddFriendsSection.goTo(TestQuickAddFriends.phone)
+
+    @pytest.mark.parametrize("name", [
+        '',  # empty username
+        ' '  # space in username
+    ])
+    def test_add_friend_invalidName(self, name):
+        self.quickAddFriendSection.entername(name)
+        self.quickAddFriendSection.pressAddButton()
+        self.quickAddFriendSection.assertControlPresent(QuickAddFriendsSectionLocators.EDIT_BUTTON)
+

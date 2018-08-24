@@ -945,4 +945,9 @@ class QuickAddFriendsSection(Section):
         mainSection.pressPlus()
         return mainSection.pressQuickAddFriends()
 
+    def enterName(self, name):
+        self.enterText(self.findElement(*self.locator.NAME_FIELD), name)
 
+    def pressAddButton(self):
+        self.findElement(*self.locator.ADD_BUTTON).click()
+        return self

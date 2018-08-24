@@ -54,7 +54,15 @@ class Section(object):
             return True
         except:
             raise AssertionError('"%s" failed to load; waited %s seconds'%(self.__class__.__name__, self.timeout))
-         
+
+    def assertControlPresent(self, control):
+        try:
+            self.findElement(*control)
+            return True
+        except ElementNotFound as e:
+            raise AssertionError(str(e))
+
+
     def findElement(self, *locator, expectedCondition = EC.visibility_of_element_located):
         return self.findElementWait(locator, expectedCondition)
             
