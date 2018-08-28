@@ -1265,16 +1265,37 @@ class TestQuickAddFriends():
 
     def setup_method(self):
         self.user = TestQuickAddFriends.it.next()
-        loginSection = LoginSection(TestChangePassword.phone)
+        loginSection = LoginSection(TestQuickAddFriends.phone)
         mainSection = loginSection.loginSuccessfully(self.user)
         self.quickAddFriendSection = QuickAddFriendsSection.goTo(TestQuickAddFriends.phone)
 
-    @pytest.mark.parametrize("name", [
-        '',  # empty username
-        ' '  # space in username
+    @pytest.mark.parametrize("user_type", [
+        'emptyName',
     ])
-    def test_add_friend_invalidName(self, name):
-        self.quickAddFriendSection.entername(name)
+    def test_add_friend_invalidName(self, user_type):
+        friend = User(user_type)
+        self.quickAddFriendSection.enterName(friend.fullName, clear = True)
+        self.quickAddFriendSection.pressAddButton()
+        self.quickAddFriendSection.assertControlNotPresent(QuickAddFriendsSectionLocators.EDIT_BUTTON)
+        self.quickAddFriendSection.pressBackArrow()
+        assertFriendNotPresent(friend, TestQuickAddFriends.phone)
+
+    @pytest.mark.parametrize("user_type", [
+        'random',
+        'threePartname',
+    ])
+    def test_add_friend_validName(self,user_type):
+        friend = User(user_type)
+        self.quickAddFriendSection.enterName(friend.fullName, clear = True)
         self.quickAddFriendSection.pressAddButton()
         self.quickAddFriendSection.assertControlPresent(QuickAddFriendsSectionLocators.EDIT_BUTTON)
+        self.quickAddFriendSection.assertControlPresent(QuickAddFriendsSectionLocators.ADD_ANOTHER_BUTTON)
+        self.quickAddFriendSection.pressBackArrow()
+        assertFriendPresent(friend,TestQuickAddFriends.phone)
 
+    '''
+    def test_add_another(self):
+        self.quickAddFriendSection.enterName("Michael", clear=True)
+        self.quickAddFriendSection.pressAddButton()
+        self.quickAddFriendSection.pressAddAnotherButton()
+    '''

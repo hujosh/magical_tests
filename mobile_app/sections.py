@@ -920,8 +920,8 @@ class CalendarSection(Section):
         super().__init__(driver, **kwargs)
 
     @staticmethod
-    def goTo(self):
-        mainSection = MainSection(self.driver)
+    def goTo(driver):
+        mainSection = MainSection(driver)
         return mainSection.pressToggleCalendarButton()
 
     def pressDay(self, day):
@@ -940,14 +940,21 @@ class QuickAddFriendsSection(Section):
         super().__init__(driver, **kwargs)
 
     @staticmethod
-    def goTo(self):
-        mainSection = MainSection(self.driver)
+    def goTo(driver):
+        mainSection = MainSection(driver)
         mainSection.pressPlus()
         return mainSection.pressQuickAddFriends()
 
-    def enterName(self, name):
-        self.enterText(self.findElement(*self.locator.NAME_FIELD), name)
+    def enterName(self, name, clear = False):
+        self.enterText(self.findElement(*self.locator.NAME_FIELD), name, clear)
 
     def pressAddButton(self):
         self.findElement(*self.locator.ADD_BUTTON).click()
         return self
+
+    def pressAddAnotherButton(self):
+        self.findElement(*self.locator.ADD_ANOTHER_BUTTON).click()
+
+    def pressBackArrow(self):
+        super().pressBackArrow()
+        return MainSection(self.driver)

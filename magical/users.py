@@ -35,6 +35,11 @@ class User:
                 setattr(self, attribute, self._getValueFor(attribute))
         self.fullName = ('%s %s'%(self.firstName, self.lastName)).strip()
         # These attributes allows a user to interact with the website via http requests.
+        firstNames = self.firstNames.split()
+        if len(firstNames) > 0:
+            self.firstName = self.firstName.split[0]
+        if len(firstNames) > 1:
+            self.lastName = firstNames[1::].
         self.http = HTTP(self)
         self.ahttp = AHTTP(self)
         
@@ -53,7 +58,7 @@ class User:
         
     def _getRandomLastName(self):
         return random.choice(User.NAMES)
-    
+
     def _getInternalName(self):
         '''This is how your name appears to yourself in the app'''
         return 'Me'
@@ -124,6 +129,8 @@ users = [
     {"name": "funnyCharInLastName", "lastName": "Pökémön"},
     {"name": "emptyName", "lastName": "", "firstName":""},
     {"name": "davidGoddard", "firstName" : "David", "lastName": "Goddard"}, #may need to recreate this user if the account gets deleted
+    {"name": "threePartname", "lastName": "Butz", "firstName": "Dr Frank"},
+
 ]
 
 def get_user(name):

@@ -62,6 +62,13 @@ class Section(object):
         except ElementNotFound as e:
             raise AssertionError(str(e))
 
+    def assertControlNotPresent(self,control):
+        try:
+            self.findElement(*control)
+            raise AssertionError("%s of %s was present but shouldn't be"%str(control),self.__class__.__name__)
+        except:
+            return True
+
 
     def findElement(self, *locator, expectedCondition = EC.visibility_of_element_located):
         return self.findElementWait(locator, expectedCondition)
