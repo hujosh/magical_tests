@@ -1309,3 +1309,6 @@ class TestQuickAddFriends():
         self.quickAddFriendSection.pressAddButton()
         friendEditSection = self.quickAddFriendSection.pressEditButton()
         assert friendEditSection.nameField == friend.fullName
+
+class TestAddEvent:
+    pass

@@ -259,3 +259,29 @@ class QuickAddFriendsSectionLocators(BaseSectionLocators):
     ADD_ANOTHER_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("add another")')
     EDIT_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("edit")')
     MUM = (MobileBy.XPATH, "//android.widget.LinearLayout[android.widget.LinearLayout/TextInputLayout[@text='Mum']]")
+
+
+class AddEventSectionLocators(BaseSectionLocators):
+    ACTIVITY = "com.android.magical.Presentation.QuickAddFriends.QuickAddFriendsActivity"
+
+    NAME_FIELD = (MobileBy.ID, 'edit_event_occasion_name')
+    DAY_FIELD = (MobileBy.ID, 'edit_event_date_day')
+    REMIND_ME_CHECKBOX =  (MobileBy.ID, 'edit_event_reminder_checkbox')
+    REMIND_ME_FIELD = (MobileBy.ID, 'edit_event_reminder_days_edit_text')
+    ADD_HOSTS_BUTTON = (MobileBy.ID, 'event_friend_name_text_view')
+    ADD_INVITEES_BUTTON = (MobileBy.ID, 'edit_event_who_text')
+
+
+class DatePickerSectionLocators(BaseSectionLocators):
+
+    OK_BUTTON = (MobileBy.ID, 'button1')
+    DAY = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("replace_me")')
+    CALENDAR = (MobileBy.ID, 'date_picker_day_picker')
+
+
+class WhoCanKnowSectionLocators(BaseSectionLocators):
+    ACTIVITY = ""
+
+    ANYONE_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Anyone")')
+    FRIENDS_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Friends")')
+    ONLY_ME_BUTTON  = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Only me")')

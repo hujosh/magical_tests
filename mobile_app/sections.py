@@ -966,3 +966,68 @@ class QuickAddFriendsSection(Section):
     def pressEditButton(self):
         self.findElement(*self.locator.EDIT_BUTTON).click()
         return FriendEditSection(self.driver)
+
+
+
+class AddEventSection(Section):
+    def __init__(self, driver, **kwargs):
+        self.locator = AddEventSectionLocators
+        self.activity = self.locator.ACTIVITY
+        super().__init__(driver, **kwargs)
+
+    def enterDate(self, day, month = None,year =None):
+        self.findElement(*self.locator.DAY_FIELD).click()
+        datePicker = DatePickerSection(self.driver)
+        datePicker.pickDate(day,month,year)
+        return self
+
+    def enterName(self, name):
+        self.enterText(*self.locator.NAME_FIELD,name)
+
+    def pressRemindMeBox(self):
+
+
+
+class DatePickerSection(Section):
+    def __init__(self, driver, **kwargs):
+        self.locator = DatePickerSectionLocators
+        super().__init__(driver, **kwargs)
+
+    def isSectionLoaded(self):
+        self.findElement(* self.locator.ALERT_BOX)
+
+    def pickDay(self, day):
+        locator_string = self.locator.DAY[1]
+        locator_strat = self.locator.DAY[0]
+        locator_string = locator_string.replace("replace_me", str(day))
+        new_locator = (locator_strat, locator_string)
+        self.findElement(*new_locator).click()
+
+    def pressOKButton(self):
+        self.findElement(*self.locator.OK_BUTTON).click()
+
+    def pickDate(self,day,month = None, year = None):
+        if year is not None:
+            pass
+        if month is not None:
+            pass
+        self.pickDay(day)
+        self.pressOKButton()
+
+
+class WhoCanKnowSection(Section):
+    def __init__(self, driver, **kwargs):
+        self.locator = WhoCanKnowSectionLocators
+        self.activity = self.locator.ACTIVITY
+        super().__init__(driver, **kwargs)
+
+    def selectAnyone(self):
+        self.findElement(*self.locator.ANYONE_BUTTONn)
+
+    def selectOnlyMe(self):
+        self.findElement(*self.locator.ONLY_ME_BUTTON)
+
+    def selectMyFriends(self):
+        self.findElement(*self.locator.FRIENDS_BUTTON)
+
+
