@@ -681,7 +681,11 @@ class FriendEditSection(Section):
     @property    
     def emailField(self):
         return self.findElement(*self.locator.EMAIL_ADDRESS_FIELD).text
-        
+
+    @property
+    def nameField(self):
+        return self.findElement(*self.locator.NAME_FIELD).text
+
         
 class FriendSection(Section):
     def __init__(self, driver, **kwargs):
@@ -958,3 +962,7 @@ class QuickAddFriendsSection(Section):
     def pressBackArrow(self):
         super().pressBackArrow()
         return MainSection(self.driver)
+
+    def pressEditButton(self):
+        self.findElement(*self.locator.EDIT_BUTTON).click()
+        return FriendEditSection(self.driver)

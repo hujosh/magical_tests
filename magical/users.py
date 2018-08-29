@@ -35,11 +35,11 @@ class User:
                 setattr(self, attribute, self._getValueFor(attribute))
         self.fullName = ('%s %s'%(self.firstName, self.lastName)).strip()
         # These attributes allows a user to interact with the website via http requests.
-        firstNames = self.firstNames.split()
+        firstNames = self.firstName.split()
         if len(firstNames) > 0:
-            self.firstName = self.firstName.split[0]
+            self.firstName = self.firstName.split()[0]
         if len(firstNames) > 1:
-            self.lastName = firstNames[1::].
+            self.lastName = "".join(firstNames[1::])
         self.http = HTTP(self)
         self.ahttp = AHTTP(self)
         

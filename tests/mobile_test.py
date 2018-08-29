@@ -1293,9 +1293,19 @@ class TestQuickAddFriends():
         self.quickAddFriendSection.pressBackArrow()
         assertFriendPresent(friend,TestQuickAddFriends.phone)
 
-    '''
+
     def test_add_another(self):
-        self.quickAddFriendSection.enterName("Michael", clear=True)
+        friend = User("random")
+        nmums_before = len(self.quickAddFriendSection.findElements(*self.quickAddFriendSection.locator.MUM))
+        self.quickAddFriendSection.enterName(friend.fullName, clear=True)
         self.quickAddFriendSection.pressAddButton()
         self.quickAddFriendSection.pressAddAnotherButton()
-    '''
+        nmums_after = len(self.quickAddFriendSection.findElements(*self.quickAddFriendSection.locator.MUM))
+        assert nmums_after == (nmums_before +1)
+
+    def test_edit(self):
+        friend = User()
+        self.quickAddFriendSection.enterName(friend.fullName, clear=True)
+        self.quickAddFriendSection.pressAddButton()
+        friendEditSection = self.quickAddFriendSection.pressEditButton()
+        assert friendEditSection.nameField == friend.fullName

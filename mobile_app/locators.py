@@ -258,4 +258,4 @@ class QuickAddFriendsSectionLocators(BaseSectionLocators):
     NAME_FIELD = (MobileBy.ID, 'quick_friend_code_name_edit_text')
     ADD_ANOTHER_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("add another")')
     EDIT_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("edit")')
-
+    MUM = (MobileBy.XPATH, "//android.widget.LinearLayout[android.widget.LinearLayout/TextInputLayout[@text='Mum']]")
