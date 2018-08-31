@@ -37,7 +37,7 @@ class Event:
         return random.choice([True, False])
 
     def _getRandomPrivacy(self):
-        return random.choice(["Only me", "Friends", "Anyone")
+        return random.choice(["Only me", "Friends", "Anyone"])
 
 
     def _getRandomHost(self):
@@ -50,13 +50,16 @@ class Event:
         switch = {
             'eventName': self._getRandomName,
             'date': self._getRandomDate,
-            'remindMe': self.self._getRandomBool,
-            'remindMeDays': self._getRandomNumber,
+            'remindMe': self._getRandmoBool,
+            'remindMeDays': self._getRandomReminderDays,
             'privacy': self._getRandomPrivacy,
             'host': self._getRandomHost,
             'invitees': self._getRandomInvitees,
         }
         return switch[value_for]()
+
+    def _getRandomReminderDays(self):
+        return random.choice([x for x in range(1,91)])
 
     def _getRandomNumber(self):
         return int(random.random() * 9999)
@@ -69,8 +72,11 @@ class Event:
 # add more here if you need to...
 events = [
     {"name": "emptyName", "eventName": ""},
+    {"name":"random"},
+    {"name": "remindMe0", 'remindMeDays':'0'},
+    {"name":'remindMe91', 'remindMeDays' : '91'},
+    {"name":'remindMeLetter', 'remindMeDays' : 'a'},
 ]
-
 
 def get_event(name):
     for event in events:

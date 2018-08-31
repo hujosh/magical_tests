@@ -66,7 +66,8 @@ class MainSectionLocators(BaseSectionLocators):
     SETTINGS_BUTTON             = (MobileBy.XPATH, '//android.view.ViewGroup/android.widget.ImageButton')
     ADD_FRIEND_BUTTON           = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Add Friend")')
     SHOW_FRIENDS_LIST_BUTTON    = (MobileBy.ID, 'bottom_bar_friends')
-    QUICK_ADD_FRIENDS_BUTTON     = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Quick Friends")')
+    QUICK_ADD_FRIENDS_BUTTON    = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Quick Friends")')
+    ADD_EVENT_BUTTON            =  (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Add Event")')
 
     
 class ItemListSectionLocators(BaseSectionLocators):
@@ -262,7 +263,7 @@ class QuickAddFriendsSectionLocators(BaseSectionLocators):
 
 
 class AddEventSectionLocators(BaseSectionLocators):
-    ACTIVITY = "com.android.magical.Presentation.QuickAddFriends.QuickAddFriendsActivity"
+    ACTIVITY = "com.android.magical.Presentation.EditEventDetails.EditEventDetailsActivity"
 
     NAME_FIELD = (MobileBy.ID, 'edit_event_occasion_name')
     DAY_FIELD = (MobileBy.ID, 'edit_event_date_day')
@@ -270,6 +271,10 @@ class AddEventSectionLocators(BaseSectionLocators):
     REMIND_ME_FIELD = (MobileBy.ID, 'edit_event_reminder_days_edit_text')
     ADD_HOSTS_BUTTON = (MobileBy.ID, 'event_friend_name_text_view')
     ADD_INVITEES_BUTTON = (MobileBy.ID, 'edit_event_who_text')
+    SAVE_BUTTON = (MobileBy.ID, 'event_edit_save_button')
+    MONTH_FIELD = (MobileBy.ID, 'edit_event_date_month')
+    YEAR_FIELD = (MobileBy.ID, 'edit_event_date_year')
+
 
 
 class DatePickerSectionLocators(BaseSectionLocators):
@@ -285,3 +290,9 @@ class WhoCanKnowSectionLocators(BaseSectionLocators):
     ANYONE_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Anyone")')
     FRIENDS_BUTTON = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Friends")')
     ONLY_ME_BUTTON  = (MobileBy.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Only me")')
+
+
+class SelectFriendsSection(BaseSectionLocators):
+    ACTIVITY = ""
+
+    FRIEND =

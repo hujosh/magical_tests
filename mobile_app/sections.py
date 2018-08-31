@@ -242,6 +242,10 @@ class MainSection(Section):
         self.findElement(*self.locator.TOGGLE_CALENDAR_BUTTON).click()
         return CalendarSection(self.driver)
 
+    def pressAddEvent(self):
+        self.findElement(*self.locator.ADD_EVENT_BUTTON).click()
+        return AddEventSection(self.driver)
+
 
 class ItemListSection(Section):
     def __init__(self, driver, **kwargs):
@@ -968,24 +972,65 @@ class QuickAddFriendsSection(Section):
         return FriendEditSection(self.driver)
 
 
-
 class AddEventSection(Section):
     def __init__(self, driver, **kwargs):
         self.locator = AddEventSectionLocators
         self.activity = self.locator.ACTIVITY
         super().__init__(driver, **kwargs)
 
-    def enterDate(self, day, month = None,year =None):
+    @staticmethod
+    def goTo(driver):
+        mainSection = MainSection(driver)
+        mainSection.pressPlus()
+        return mainSection.pressAddEvent()
+
+    def pressDayField(self):
         self.findElement(*self.locator.DAY_FIELD).click()
-        datePicker = DatePickerSection(self.driver)
+        return DatePickerSection(self.driver)
+
+    def pressMonthField(self):
+        self.findElement(*self.locator.MONTH_FIELD).click()
+        return DatePickerSection(self.driver)
+
+    def pressYearField(self):
+        self.findElement(*self.locator.YEAR_FIELD).click()
+        return DatePickerSection(self.driver)
+
+    def enterDate(self, day, month = None,year =None):
+        datePicker = self.pressDayField()
         datePicker.pickDate(day,month,year)
         return self
 
     def enterName(self, name):
-        self.enterText(*self.locator.NAME_FIELD,name)
+        self.enterText(self.findElement(*self.locator.NAME_FIELD), name, clear=True)
 
-    def pressRemindMeBox(self):
+    def setRemindMeBox(self, remindMe):
+        checkBox = self.findElement(*self.locator.REMIND_ME_CHECKBOX)
+        checkBoxState = checkBox.get_attribute('checked')
+        if checkBoxState != remindMe:
+            checkBox.click()
 
+    def enterRemindMeDays(self, days):
+        self.enterText(self.findElement(*self.locator.REMIND_ME_FIELD),days)
+
+    def pressSave(self):
+        self.findElement(*self.locator.SAVE_BUTTON).click()
+
+    def _addEvent(self,event):
+        self.enterName(event.eventName)
+        self.enterDate(event.date.day)
+        self.setRemindMeBox(event.remindMe)
+        self.enterRemindMeDays(event.remindMeDays)
+        self.flick('down')
+        self.pressSave()
+
+    def addEventUnSuccessfully(self, event):
+        self._addEvent(event)
+        return self
+
+    def addEventSuccessfully(self, event):
+        self._addEvent(event)
+        return CalendarSection(self.driver)
 
 
 class DatePickerSection(Section):
@@ -994,7 +1039,7 @@ class DatePickerSection(Section):
         super().__init__(driver, **kwargs)
 
     def isSectionLoaded(self):
-        self.findElement(* self.locator.ALERT_BOX)
+        self.findElement(* self.locator.CALENDAR)
 
     def pickDay(self, day):
         locator_string = self.locator.DAY[1]
@@ -1005,6 +1050,7 @@ class DatePickerSection(Section):
 
     def pressOKButton(self):
         self.findElement(*self.locator.OK_BUTTON).click()
+        return AddEventSection(self.driver)
 
     def pickDate(self,day,month = None, year = None):
         if year is not None:

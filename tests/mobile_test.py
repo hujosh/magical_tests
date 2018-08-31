@@ -8,6 +8,7 @@ from appium import webdriver
 
 from magical.items import Item
 from magical.reviews import Review
+from magical.events import Event
 from magical.users import User
 from mobile_app.sections import *
 from mobile_app.base import PhoneNetwork
@@ -1311,4 +1312,57 @@ class TestQuickAddFriends():
         assert friendEditSection.nameField == friend.fullName
 
 class TestAddEvent:
-    pass
+    def setup_class(cls):
+        cls.users = [User() for i in range(15)]
+        cls.p = Pool(15)
+        cls.it = TestAddEvent.p.imap(cls.create_account, cls.users)
+        cls.phone = webdriver.Remote(settings.host, settings.desired_caps)
+
+    @classmethod
+    def create_account(cls, user):
+        user.http.createAccount()
+        return user
+
+    def teardown_method(self):
+        TestAddEvent.phone.reset()
+
+    def setup_method(self):
+        self.user = TestAddEvent.it.next()
+        loginSection = LoginSection(TestAddEvent.phone)
+        mainSection = loginSection.loginSuccessfully(self.user)
+        self.addEventSection = AddEventSection.goTo(TestAddEvent.phone)
+
+    """
+    @pytest.mark.parametrize("event_type", [
+        'emptyName',
+    ])
+    def test_add_event_with_invalidName(self, event_type):
+        event = Event(event_type)
+        self.addEventSection.addEventSuccessfully(event)
+
+    @pytest.mark.parametrize("event_type", [
+        'random',
+    ])
+    def test_add_event_with_validName(self, event_type):
+        event = Event(event_type)
+        self.addEventSection.addEventSuccessfully(event)
+
+    def test_date_buttons(self):
+        '''Tests that each of the the 3 date fields when pressed brings up the calendar'''
+        calendarSection = self.addEventSection.pressDayField()
+        addEventSection = calendarSection.pressOKButton()
+        calendarSection = addEventSection.pressMonthField()
+        addEventSection = calendarSection.pressOKButton()
+        calendarSection = addEventSection.pressYearField()
+        addEventSection = calendarSection.pressOKButton
+
+    """
+    @pytest.mark.parametrize("event_type", [
+        'random',
+        'remindMe0',
+        'remindMe91',
+        'remindMeLetter'
+    ])
+    def test_invalidRemindMeDays(self, event_type):
+        event = Event(event_type)
+        self.addEventSection.addEventUnSuccessfully(event)
